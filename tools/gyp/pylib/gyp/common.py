@@ -424,19 +424,26 @@ def EnsureDirExists(path):
 
 def GetPlatformFlavor():
     """Returns the flavor for the given platform."""
-    if platform.startswith("sunos"):
+    flavors = {
+        "cygwin": "win",
+        "win32": "win",
+        "darwin": "mac",
+    }
+    if sys.platform in flavors:
+        return flavors[sys.platform]    
+    if sys.platform.startswith("sunos"):
         return "solaris"
-    if platform.startswith(("dragonfly", "freebsd")):
+    if sys.platform.startswith(("dragonfly", "freebsd")):
         return "freebsd"
-    if platform.startswith("openbsd"):
+    if sys.platform.startswith("openbsd"):
         return "openbsd"
-    if platform.startswith("netbsd"):
+    if sys.platform.startswith("netbsd"):
         return "netbsd"
-    if platform.startswith("aix"):
+    if sys.platform.startswith("aix"):
         return "aix"
-    if platform.startswith(("os390", "zos")):
+    if sys.platform.startswith(("os390", "zos")):
         return "zos"
-    if platform == "os400":
+    if sys.platform == "os400":
         return "os400"
 
     return "linux"

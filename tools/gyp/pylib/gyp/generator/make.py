@@ -2327,7 +2327,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     options = params["options"]
     target_flavor = gyp.common.GetFlavor(params)
     host_flavor = gyp.common.GetPlatformFlavor()
-    print("Generating make files for host:%s target:%s" % host_flavor, target_flavor)
+    print("Generating make files for host:%s target:%s" % (host_flavor, target_flavor))
     generator_flags = params.get("generator_flags", {})
     builddir_name = generator_flags.get("output_dir", "out")
     android_ndk_version = generator_flags.get("android_ndk_version", None)

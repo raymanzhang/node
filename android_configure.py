@@ -65,6 +65,11 @@ elif platform.system() == "Linux":
 os.environ['PATH'] += os.pathsep + toolchain_path + "/bin"
 os.environ['CC'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" +  "clang"
 os.environ['CXX'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" + "clang++"
+os.environ['AR_target'] = toolchain_path + "/bin/" + "llvm-ar"
+
+os.environ['CC_host'] = "clang"
+os.environ['CXX_host'] = "clang++"
+os.environ['AR_host'] = "ar"
 
 GYP_DEFINES = "target_arch=" + arch
 GYP_DEFINES += " v8_target_arch=" + arch
