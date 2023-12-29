@@ -422,6 +422,24 @@ def EnsureDirExists(path):
     except OSError:
         pass
 
+def GetPlatformFlavor():
+    """Returns the flavor for the given platform."""
+    if platform.startswith("sunos"):
+        return "solaris"
+    if platform.startswith(("dragonfly", "freebsd")):
+        return "freebsd"
+    if platform.startswith("openbsd"):
+        return "openbsd"
+    if platform.startswith("netbsd"):
+        return "netbsd"
+    if platform.startswith("aix"):
+        return "aix"
+    if platform.startswith(("os390", "zos")):
+        return "zos"
+    if platform == "os400":
+        return "os400"
+
+    return "linux"
 
 def GetFlavor(params):
     """Returns |params.flavor| if it's set, the system's default flavor else."""
@@ -433,24 +451,7 @@ def GetFlavor(params):
 
     if "flavor" in params:
         return params["flavor"]
-    if sys.platform in flavors:
-        return flavors[sys.platform]
-    if sys.platform.startswith("sunos"):
-        return "solaris"
-    if sys.platform.startswith(("dragonfly", "freebsd")):
-        return "freebsd"
-    if sys.platform.startswith("openbsd"):
-        return "openbsd"
-    if sys.platform.startswith("netbsd"):
-        return "netbsd"
-    if sys.platform.startswith("aix"):
-        return "aix"
-    if sys.platform.startswith(("os390", "zos")):
-        return "zos"
-    if sys.platform == "os400":
-        return "os400"
-
-    return "linux"
+    return GetPlatformFlavor()
 
 
 def CopyTool(flavor, out_path, generator_flags={}):
