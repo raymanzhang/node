@@ -447,6 +447,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             "allow permissions to write in the filesystem",
             &EnvironmentOptions::allow_fs_write,
             kAllowedInEnvvar);
+  AddOption("--allow-addons",
+            "allow use of addons when any permissions are set",
+            &EnvironmentOptions::allow_addons,
+            kAllowedInEnvvar);
   AddOption("--allow-child-process",
             "allow use of child process when any permissions are set",
             &EnvironmentOptions::allow_child_process,
@@ -854,6 +858,12 @@ PerIsolateOptionsParser::PerIsolateOptionsParser(
             "Generate a snapshot blob when the process exits.",
             &PerIsolateOptions::build_snapshot,
             kDisallowedInEnvvar);
+  AddOption("--build-snapshot-config",
+            "Generate a snapshot blob when the process exits using a"
+            "JSON configuration in the specified path.",
+            &PerIsolateOptions::build_snapshot_config,
+            kDisallowedInEnvvar);
+  Implies("--build-snapshot-config", "--build-snapshot");
 
   Insert(eop, &PerIsolateOptions::get_per_env_options);
 }

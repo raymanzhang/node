@@ -2197,6 +2197,9 @@ Type: End-of-Life
 
 <!-- YAML
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/50973
+    description: End-of-Life.
   - version: v11.0.0
     pr-url: https://github.com/nodejs/node/pull/22089
     description: Runtime deprecation.
@@ -2205,11 +2208,12 @@ changes:
     description: Documentation-only deprecation.
 -->
 
-Type: Runtime
+Type: End-of-Life
 
-Using [`crypto.createCipher()`][] and [`crypto.createDecipher()`][] must be
-avoided as they use a weak key derivation function (MD5 with no salt) and static
-initialization vectors. It is recommended to derive a key using
+`crypto.createCipher()` and `crypto.createDecipher()` have been removed
+as they use a weak key derivation function (MD5 with no salt) and static
+initialization vectors.
+It is recommended to derive a key using
 [`crypto.pbkdf2()`][] or [`crypto.scrypt()`][] with random salts and to use
 [`crypto.createCipheriv()`][] and [`crypto.createDecipheriv()`][] to obtain the
 [`Cipher`][] and [`Decipher`][] objects respectively.
@@ -3309,6 +3313,9 @@ Values other than `undefined`, `null`, integer numbers, and integer strings
 
 <!-- YAML
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/51179
+    description: Runtime deprecation.
   - version:
     - v18.8.0
     - v16.18.0
@@ -3316,9 +3323,11 @@ changes:
     description: Documentation-only deprecation.
 -->
 
-Type: Documentation-only
+Type: Runtime
 
-The [`--trace-atomics-wait`][] flag is deprecated.
+The [`--trace-atomics-wait`][] flag is deprecated because
+it uses the V8 hook `SetAtomicsWaitCallback`,
+that will be removed in a future V8 release.
 
 ### DEP0166: Double slashes in imports and exports targets
 
@@ -3535,7 +3544,7 @@ The [`util.types.isWebAssemblyCompiledModule`][] API is deprecated. Please use
 
 <!-- YAML
 changes:
-  - version: REPLACEME
+  - version: v21.5.0
     pr-url: https://github.com/nodejs/node/pull/51020
     description: Documentation-only deprecation.
 -->
@@ -3549,7 +3558,7 @@ release lines. Please use [`dirent.parentPath`][] instead.
 
 <!-- YAML
 changes:
-  - version: REPLACEME
+  - version: v21.5.0
     pr-url: https://github.com/nodejs/node/pull/51077
     description: Documentation-only deprecation.
 -->
@@ -3594,9 +3603,7 @@ Please use the [`crypto.createHash()`][] method to create Hash instances.
 [`console.error()`]: console.md#consoleerrordata-args
 [`console.log()`]: console.md#consolelogdata-args
 [`crypto.Certificate()` constructor]: crypto.md#legacy-api
-[`crypto.createCipher()`]: crypto.md#cryptocreatecipheralgorithm-password-options
 [`crypto.createCipheriv()`]: crypto.md#cryptocreatecipherivalgorithm-key-iv-options
-[`crypto.createDecipher()`]: crypto.md#cryptocreatedecipheralgorithm-password-options
 [`crypto.createDecipheriv()`]: crypto.md#cryptocreatedecipherivalgorithm-key-iv-options
 [`crypto.createHash()`]: crypto.md#cryptocreatehashalgorithm-options
 [`crypto.fips`]: crypto.md#cryptofips
