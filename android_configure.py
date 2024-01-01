@@ -68,7 +68,7 @@ os.environ['CXX'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_ve
 os.environ['AR_target'] = toolchain_path + "/bin/" + "llvm-ar"
 
 os.environ['CC_host'] = "clang"
-os.environ['CXX_host'] = "clang++"
+os.environ['CXX_host'] = "clang++ -std=c++17"
 os.environ['AR_host'] = "ar"
 
 GYP_DEFINES = "target_arch=" + arch

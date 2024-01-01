@@ -807,6 +807,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
             self.alias = self.output
             install_path = self.output
 
+        self.WriteLn("FLAVOR := " + self.flavor)
         self.WriteLn("TOOLSET := " + self.toolset)
         self.WriteLn("TARGET := " + self.target)
 
