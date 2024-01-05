@@ -2391,7 +2391,6 @@ def PerformBuild(data, configurations, params):
 def GenerateOutput(target_list, target_dicts, data, params):
     options = params["options"]
     flavor = gyp.common.GetFlavor(params)
-
     generator_flags = params.get("generator_flags", {})
     builddir_name = generator_flags.get("output_dir", "out")
     android_ndk_version = generator_flags.get("android_ndk_version", None)
@@ -2437,7 +2436,6 @@ def GenerateOutput(target_list, target_dicts, data, params):
         if spec["default_configuration"] != "Default":
             default_configuration = spec["default_configuration"]
             break
-
     if not default_configuration:
         default_configuration = "Default"
 
@@ -2661,7 +2659,6 @@ def GenerateOutput(target_list, target_dicts, data, params):
             gyp.xcode_emulation.MergeGlobalXcodeSettingsToSpec(data[build_file], spec)
 
         writer = MakefileWriter(generator_flags, flavor)
-        print("TRACE: writing target:%s" % qualified_target)
         writer.Write(
             qualified_target,
             base_path,

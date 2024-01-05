@@ -648,7 +648,6 @@ def gyp_main(args):
             "parallel": options.parallel,
             "root_targets": options.root_targets,
             "target_arch": cmdline_default_variables.get("target_arch", ""),
-            "host_arch": cmdline_default_variables.get("host_arch", ""),
         }
 
         # Start with the default variables from the command line.

@@ -419,8 +419,6 @@ def LoadTargetBuildFile(
         )
         build_file_data["included_files"].append(included_relative)
 
-    default_os=variables["OS"];
-
     # Do a first round of toolsets expansion so that conditions can be defined
     # per toolset.
     ProcessToolsetsInDict(build_file_data)
@@ -433,8 +431,6 @@ def LoadTargetBuildFile(
     # Since some toolsets might have been defined conditionally, perform
     # a second round of toolsets expansion now.
     ProcessToolsetsInDict(build_file_data)
-
-    variables["OS"]=default_os;
 
     # Look at each project's target_defaults dict, and merge settings into
     # targets.
