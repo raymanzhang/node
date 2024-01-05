@@ -423,6 +423,7 @@ def EnsureDirExists(path):
     except OSError:
         pass
 
+
 def GetFlavor(params):
     """Returns |params.flavor| if it's set, the system's default flavor else."""
     flavors = {
@@ -451,6 +452,7 @@ def GetFlavor(params):
         return "os400"
 
     return "linux"
+
 
 def CopyTool(flavor, out_path, generator_flags={}):
     """Finds (flock|mac|win)_tool.gyp in the gyp directory and copies it
