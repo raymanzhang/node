@@ -128,6 +128,14 @@ parser.add_argument('--dest-os',
     choices=valid_os,
     help=f"operating system to build for ({', '.join(valid_os)})")
 
+parser.add_argument(
+    "--toolset",
+    dest="toolset_filter",
+    action="store",
+    default=None,
+    help="Toolset to be used",
+)
+
 parser.add_argument('--error-on-warn',
     action='store_true',
     dest='error_on_warn',
@@ -2145,6 +2153,9 @@ elif flavor == 'win' and sys.platform != 'msys':
   gyp_args += ['-f', 'msvs', '-G', 'msvs_version=auto']
 else:
   gyp_args += ['-f', 'make-' + flavor]
+
+if options.toolset_filter:
+  gyp_args += ['--toolset', options.toolset_filter]
 
 if options.compile_commands_json:
   gyp_args += ['-f', 'compile_commands_json']

@@ -473,6 +473,13 @@ def gyp_main(args):
         action="store_true",
         help="Show the version and exit.",
     )
+    parser.add_argument(
+        "--toolset",
+        dest="toolset_filter",
+        action="store",
+        default=None,
+        help="Toolset to be used",
+    )
 
     options, build_files_arg = parser.parse_args(args)
     if options.version:

@@ -143,49 +143,19 @@ def CalculateGeneratorInputInfo(params):
 # This is the replacement character.
 SPACE_REPLACEMENT = "?"
 
-LINK_COMMANDS_ALL = """\
-quiet_cmd_alink_gcc   := AR($(TOOLSET)) $@
-quiet_cmd_alink_xcode := LIBTOOL-STATIC $@
-quiet_cmd_alink_aix   := AR($(TOOLSET)) $@
-quiet_cmd_alink_os400 := AR($(TOOLSET)) $@
-quiet_cmd_alink_os390 := AR($(TOOLSET)) $@
-quiet_cmd_alink       := $(quiet_cmd_alink_$($(TOOLSET)_link_command_flavor))
 
-cmd_alink_gcc   := rm -f $@ && $(AR.$(TOOLSET)) crs $@ $(filter %.o,$^)
-cmd_alink_xcode := rm -f $@ && ./gyp-mac-tool filter-libtool libtool $(GYP_LIBTOOLFLAGS) -static -o $@ $(filter %.o,$^)
-cmd_alink_aix   := rm -f $@ && $(AR.$(TOOLSET)) -X32_64 crs $@ $(filter %.o,$^)
-cmd_alink_os400 := rm -f $@ && $(AR.$(TOOLSET)) -X64 crs $@ $(filter %.o,$^)
-cmd_alink_os390 := rm -f $@ && $(AR.$(TOOLSET)) crs $@ $(filter %.o,$^)
-cmd_alink       := $(cmd_alink_$($(TOOLSET)_link_command_flavor))
+LINK_COMMANDS_LINUX = """\
+quiet_cmd_alink = AR($(TOOLSET)) $@
+cmd_alink = rm -f $@ && $(AR.$(TOOLSET)) crs $@ $(filter %.o,$^)
 
-quiet_cmd_alink_thin_gcc   := AR($(TOOLSET)) $@
-quiet_cmd_alink_thin_aix   := AR($(TOOLSET)) $@
-quiet_cmd_alink_thin_os400 := AR($(TOOLSET)) $@
-quiet_cmd_alink_thin_os390 := AR($(TOOLSET)) $@
-quiet_cmd_alink_thin       := $(quiet_cmd_alink_thin_$($(TOOLSET)_link_command_flavor))
-
-cmd_alink_thin_gcc   := rm -f $@ && $(AR.$(TOOLSET)) crsT $@ $(filter %.o,$^)
-cmd_alink_thin_aix   := rm -f $@ && $(AR.$(TOOLSET)) -X32_64 crs $@ $(filter %.o,$^)
-cmd_alink_thin_os400 := rm -f $@ && $(AR.$(TOOLSET)) -X64 crs $@ $(filter %.o,$^)
-cmd_alink_thin_os390 := rm -f $@ && $(AR.$(TOOLSET)) crsT $@ $(filter %.o,$^)
-cmd_alink_thin       := $(cmd_alink_thin_$($(TOOLSET)_link_command_flavor))
+quiet_cmd_alink_thin = AR($(TOOLSET)) $@
+cmd_alink_thin = rm -f $@ && $(AR.$(TOOLSET)) crsT $@ $(filter %.o,$^)
 
 # Due to circular dependencies between libraries :(, we wrap the
 # special "figure out circular dependencies" flags around the entire
 # input list during linking.
-quiet_cmd_link_gcc   := LINK($(TOOLSET)) $@
-quiet_cmd_link_xcode := LINK($(TOOLSET)) $@
-quiet_cmd_link_aix   := LINK($(TOOLSET)) $@
-quiet_cmd_link_os400 := LINK($(TOOLSET)) $@
-quiet_cmd_link_os390 := LINK($(TOOLSET)) $@
-quiet_cmd_link       := $(quiet_cmd_link_$($(TOOLSET)_link_command_flavor))
-
-cmd_link_gcc   := $(LINK.$(TOOLSET)) -o $@ $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,--start-group $(LD_INPUTS) $(LIBS) -Wl,--end-group
-cmd_link_xcode := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o "$@" $(LD_INPUTS) $(LIBS)
-cmd_link_aix   := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_link_os400 := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_link_os390 := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_link       := $(cmd_link_$($(TOOLSET)_link_command_flavor))
+quiet_cmd_link = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) -o $@ $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,--start-group $(LD_INPUTS) $(LIBS) -Wl,--end-group
 
 # Note: this does not handle spaces in paths
 define xargs
@@ -228,35 +198,133 @@ endef
 # Other shared-object link notes:
 # - Set SONAME to the library filename so our binaries don't reference
 # the local, absolute paths used on the link command-line.
-quiet_cmd_solink_gcc   := SOLINK($(TOOLSET)) $@
-quiet_cmd_solink_xcode := SOLINK($(TOOLSET)) $@
-quiet_cmd_solink_aix   := SOLINK($(TOOLSET)) $@
-quiet_cmd_solink_os400 := SOLINK($(TOOLSET)) $@
-quiet_cmd_solink_os390 := SOLINK($(TOOLSET)) $@
-quiet_cmd_solink       := $(quiet_cmd_solink_$($(TOOLSET)_link_command_flavor))
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) -o $@ -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -Wl,--whole-archive $(LD_INPUTS) -Wl,--no-whole-archive $(LIBS)
 
-cmd_solink_gcc   := $(LINK.$(TOOLSET)) -o $@ -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -Wl,--whole-archive $(LD_INPUTS) -Wl,--no-whole-archive $(LIBS)
-cmd_solink_xcode := $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o "$@" $(LD_INPUTS) $(LIBS)
-cmd_solink_aix   := $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_solink_os400 := $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_solink_os390 := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
-cmd_solink       := $(cmd_solink_$($(TOOLSET)_link_command_flavor))
-
-quiet_cmd_solink_module_gcc   := SOLINK_MODULE($(TOOLSET)) $@
-quiet_cmd_solink_module_xcode := SOLINK_MODULE($(TOOLSET)) $@
-quiet_cmd_solink_module_aix   := SOLINK_MODULE($(TOOLSET)) $@
-quiet_cmd_solink_module_os400 := SOLINK_MODULE($(TOOLSET)) $@
-quiet_cmd_solink_module_os390 := SOLINK_MODULE($(TOOLSET)) $@
-quiet_cmd_solink_module       := $(quiet_cmd_solink_module_$($(TOOLSET)_link_command_flavor))
-
-cmd_solink_module_gcc   := $(LINK.$(TOOLSET)) -o $@ -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -Wl,--start-group $(filter-out FORCE_DO_CMD, $^) -Wl,--end-group $(LIBS)
-cmd_solink_module_xcode := $(LINK.$(TOOLSET)) -bundle $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
-cmd_solink_module_aix   := $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
-cmd_solink_module_os400 := $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
-cmd_solink_module_os390 := $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
-cmd_solink_module       := $(cmd_solink_module_$($(TOOLSET)_link_command_flavor))
-
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) -o $@ -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -Wl,--start-group $(filter-out FORCE_DO_CMD, $^) -Wl,--end-group $(LIBS)
 """  # noqa: E501
+
+LINK_COMMANDS_MAC = """\
+quiet_cmd_alink = LIBTOOL-STATIC $@
+cmd_alink = rm -f $@ && ./gyp-mac-tool filter-libtool libtool $(GYP_LIBTOOLFLAGS) -static -o $@ $(filter %.o,$^)
+
+quiet_cmd_link = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o "$@" $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o "$@" $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) -bundle $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
+"""  # noqa: E501
+
+LINK_COMMANDS_ANDROID = """\
+quiet_cmd_alink = AR($(TOOLSET)) $@
+cmd_alink = rm -f $@ && $(AR.$(TOOLSET)) crs $@ $(filter %.o,$^)
+
+quiet_cmd_alink_thin = AR($(TOOLSET)) $@
+cmd_alink_thin = rm -f $@ && $(AR.$(TOOLSET)) crsT $@ $(filter %.o,$^)
+
+# Note: this does not handle spaces in paths
+define xargs
+  $(1) $(word 1,$(2))
+$(if $(word 2,$(2)),$(call xargs,$(1),$(wordlist 2,$(words $(2)),$(2))))
+endef
+
+define write-to-file
+  @: >$(1)
+$(call xargs,@printf "%s\\n" >>$(1),$(2))
+endef
+
+OBJ_FILE_LIST := ar-file-list
+
+define create_archive
+        rm -f $(1) $(1).$(OBJ_FILE_LIST); mkdir -p `dirname $(1)`
+        $(call write-to-file,$(1).$(OBJ_FILE_LIST),$(filter %.o,$(2)))
+        $(AR.$(TOOLSET)) crs $(1) @$(1).$(OBJ_FILE_LIST)
+endef
+
+define create_thin_archive
+        rm -f $(1) $(OBJ_FILE_LIST); mkdir -p `dirname $(1)`
+        $(call write-to-file,$(1).$(OBJ_FILE_LIST),$(filter %.o,$(2)))
+        $(AR.$(TOOLSET)) crsT $(1) @$(1).$(OBJ_FILE_LIST)
+endef
+
+# Due to circular dependencies between libraries :(, we wrap the
+# special "figure out circular dependencies" flags around the entire
+# input list during linking.
+quiet_cmd_link = LINK($(TOOLSET)) $@
+quiet_cmd_link_host = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ -Wl,--start-group $(LD_INPUTS) -Wl,--end-group $(LIBS)
+cmd_link_host = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ -Wl,--start-group $(LD_INPUTS) -Wl,--end-group $(LIBS)
+
+# Other shared-object link notes:
+# - Set SONAME to the library filename so our binaries don't reference
+# the local, absolute paths used on the link command-line.
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -o $@ -Wl,--whole-archive $(LD_INPUTS) -Wl,--no-whole-archive $(LIBS)
+
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -o $@ -Wl,--start-group $(filter-out FORCE_DO_CMD, $^) -Wl,--end-group $(LIBS)
+quiet_cmd_solink_module_host = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module_host = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -Wl,-soname=$(@F) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
+"""  # noqa: E501
+
+
+LINK_COMMANDS_AIX = """\
+quiet_cmd_alink = AR($(TOOLSET)) $@
+cmd_alink = rm -f $@ && $(AR.$(TOOLSET)) -X32_64 crs $@ $(filter %.o,$^)
+
+quiet_cmd_alink_thin = AR($(TOOLSET)) $@
+cmd_alink_thin = rm -f $@ && $(AR.$(TOOLSET)) -X32_64 crs $@ $(filter %.o,$^)
+
+quiet_cmd_link = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
+"""  # noqa: E501
+
+
+LINK_COMMANDS_OS400 = """\
+quiet_cmd_alink = AR($(TOOLSET)) $@
+cmd_alink = rm -f $@ && $(AR.$(TOOLSET)) -X64 crs $@ $(filter %.o,$^)
+
+quiet_cmd_alink_thin = AR($(TOOLSET)) $@
+cmd_alink_thin = rm -f $@ && $(AR.$(TOOLSET)) -X64 crs $@ $(filter %.o,$^)
+
+quiet_cmd_link = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) -shared $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
+"""  # noqa: E501
+
+
+LINK_COMMANDS_OS390 = """\
+quiet_cmd_alink = AR($(TOOLSET)) $@
+cmd_alink = rm -f $@ && $(AR.$(TOOLSET)) crs $@ $(filter %.o,$^)
+
+quiet_cmd_alink_thin = AR($(TOOLSET)) $@
+cmd_alink_thin = rm -f $@ && $(AR.$(TOOLSET)) crsT $@ $(filter %.o,$^)
+
+quiet_cmd_link = LINK($(TOOLSET)) $@
+cmd_link = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink = SOLINK($(TOOLSET)) $@
+cmd_solink = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(LD_INPUTS) $(LIBS)
+
+quiet_cmd_solink_module = SOLINK_MODULE($(TOOLSET)) $@
+cmd_solink_module = $(LINK.$(TOOLSET)) $(GYP_LDFLAGS) $(LDFLAGS.$(TOOLSET)) -o $@ $(filter-out FORCE_DO_CMD, $^) $(LIBS)
+"""  # noqa: E501
+
 
 # Header of toplevel Makefile.
 # This should go into the build tree, but it's easier to keep it here for now.
@@ -407,9 +475,6 @@ cmd_copy = ln -f "$<" "$@" 2>/dev/null || (rm -rf "$@" && cp %(copy_archive_args
 
 quiet_cmd_symlink = SYMLINK $@
 cmd_symlink = ln -sf "$<" "$@"
-
-host_link_command_flavor = %(host_link_command_flavor)s
-target_link_command_flavor = %(target_link_command_flavor)s
 
 %(link_commands)s
 """  # noqa: E501
@@ -807,7 +872,6 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
             self.alias = self.output
             install_path = self.output
 
-        self.WriteLn("FLAVOR := " + self.flavor)
         self.WriteLn("TOOLSET := " + self.toolset)
         self.WriteLn("TARGET := " + self.target)
 
@@ -1576,7 +1640,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
                 [
                     target_outputs[dep]
                     for dep in spec["dependencies"]
-                    if target_outputs[dep]
+                    if (dep in target_outputs and target_outputs[dep])
                 ]
             )
             for dep in spec["dependencies"]:
@@ -2326,9 +2390,9 @@ def PerformBuild(data, configurations, params):
 
 def GenerateOutput(target_list, target_dicts, data, params):
     options = params["options"]
-    target_flavor = gyp.common.GetFlavor(params)
-    host_flavor = gyp.common.GetPlatformFlavor()
-    print("Generating make files for host:%s target:%s" % (host_flavor, target_flavor))
+    flavor = gyp.common.GetFlavor(params)
+    toolset_filter = options.toolset_filter
+
     generator_flags = params.get("generator_flags", {})
     builddir_name = generator_flags.get("output_dir", "out")
     android_ndk_version = generator_flags.get("android_ndk_version", None)
@@ -2357,11 +2421,24 @@ def GenerateOutput(target_list, target_dicts, data, params):
     # necessary configurations.
     default_configuration = None
     toolsets = {target_dicts[target]["toolset"] for target in target_list}
+
+    target_list_tmp = target_list.copy()
+    toolset_buildfiles = set()
+    for target in target_list_tmp:
+        if (toolset_filter is None or target_dicts[target]["toolset"] in toolset_filter):
+            build_file, _, _ = gyp.common.ParseQualifiedTarget(target)
+            toolset_buildfiles.add(build_file)
+        else:
+            if target in target_dicts:
+                del target_dicts[target]
+            target_list.remove(target)
+
     for target in target_list:
         spec = target_dicts[target]
         if spec["default_configuration"] != "Default":
             default_configuration = spec["default_configuration"]
             break
+
     if not default_configuration:
         default_configuration = "Default"
 
@@ -2385,9 +2462,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
         "default_configuration": default_configuration,
         "flock": flock_command,
         "flock_index": 1,
-        "host_link_command_flavor": "gcc",
-        "target_link_command_flavor": "gcc",
-        "link_commands": LINK_COMMANDS_ALL,
+        "link_commands": LINK_COMMANDS_LINUX,
         "extra_commands": "",
         "srcdir": srcdir,
         "copy_archive_args": copy_archive_arguments,
@@ -2403,44 +2478,53 @@ def GenerateOutput(target_list, target_dicts, data, params):
         "LINK.host": GetEnvironFallback(("LINK_host", "LINK"), "$(CXX.host)"),
         "PLI.host": GetEnvironFallback(("PLI_host", "PLI"), "pli"),
     }
-    if host_flavor == "mac":
+    if flavor == "mac":
         flock_command = "./gyp-mac-tool flock"
         header_params.update(
             {
                 "flock": flock_command,
                 "flock_index": 2,
-                "host_link_command_flavor": "xcode",
+                "link_commands": LINK_COMMANDS_MAC,
                 "extra_commands": SHARED_HEADER_MAC_COMMANDS,
             }
         )
-    elif host_flavor == "zos":
+    elif flavor == "android":
+        header_params.update({"link_commands": LINK_COMMANDS_ANDROID})
+    elif flavor == "zos":
         copy_archive_arguments = "-fPR"
+        CC_target = GetEnvironFallback(("CC_target", "CC"), "njsc")
         makedep_arguments = "-MMD"
-        if CC_host == "clang":
+        if CC_target == "clang":
             CC_host = GetEnvironFallback(("CC_host", "CC"), "clang")
+            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "clang++")
             CXX_host = GetEnvironFallback(("CXX_host", "CXX"), "clang++")
-        elif CC_host == "ibm-clang64":
+        elif CC_target == "ibm-clang64":
             CC_host = GetEnvironFallback(("CC_host", "CC"), "ibm-clang64")
+            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "ibm-clang++64")
             CXX_host = GetEnvironFallback(("CXX_host", "CXX"), "ibm-clang++64")
-        elif CC_host == "ibm-clang":
+        elif CC_target == "ibm-clang":
             CC_host = GetEnvironFallback(("CC_host", "CC"), "ibm-clang")
+            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "ibm-clang++")
             CXX_host = GetEnvironFallback(("CXX_host", "CXX"), "ibm-clang++")
         else:
             # Node.js versions prior to v18:
             makedep_arguments = "-qmakedep=gcc"
             CC_host = GetEnvironFallback(("CC_host", "CC"), "njsc")
+            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "njsc++")
             CXX_host = GetEnvironFallback(("CXX_host", "CXX"), "njsc++")
         header_params.update(
             {
                 "copy_archive_args": copy_archive_arguments,
                 "makedep_args": makedep_arguments,
-                "host_link_command_flavor": "os390",
+                "link_commands": LINK_COMMANDS_OS390,
                 "extra_commands": SHARED_HEADER_OS390_COMMANDS,
+                "CC.target": CC_target,
+                "CXX.target": CXX_target,
                 "CC.host": CC_host,
                 "CXX.host": CXX_host,
             }
         )
-    elif host_flavor == "solaris":
+    elif flavor == "solaris":
         copy_archive_arguments = "-pPRf@"
         header_params.update(
             {
@@ -2449,74 +2533,32 @@ def GenerateOutput(target_list, target_dicts, data, params):
                 "flock_index": 2,
             }
         )
-    elif host_flavor == "freebsd":
+    elif flavor == "freebsd":
         # Note: OpenBSD has sysutils/flock. lockf seems to be FreeBSD specific.
         header_params.update({"flock": "lockf"})
-    elif host_flavor == "openbsd":
+    elif flavor == "openbsd":
         copy_archive_arguments = "-pPRf"
         header_params.update({"copy_archive_args": copy_archive_arguments})
-    elif host_flavor == "aix":
+    elif flavor == "aix":
         copy_archive_arguments = "-pPRf"
         header_params.update(
             {
                 "copy_archive_args": copy_archive_arguments,
-                "host_link_command_flavor": "aix",
+                "link_commands": LINK_COMMANDS_AIX,
                 "flock": "./gyp-flock-tool flock",
                 "flock_index": 2,
             }
         )
-    elif host_flavor == "os400":
+    elif flavor == "os400":
         copy_archive_arguments = "-pPRf"
         header_params.update(
             {
                 "copy_archive_args": copy_archive_arguments,
-                "host_link_command_flavor": "os400",
+                "link_commands": LINK_COMMANDS_OS400,
                 "flock": "./gyp-flock-tool flock",
                 "flock_index": 2,
             }
         )
-
-    if target_flavor == "mac":
-        header_params.update(
-            {
-                "target_link_command_flavor": "xcode",
-            }
-        )
-    elif target_flavor == "zos":
-        CC_target = GetEnvironFallback(("CC_target", "CC"), "njsc")
-        # TODO: makedep_arguments should use different value for host and target too.
-        makedep_arguments = "-MMD"
-        if CC_target == "clang":
-            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "clang++")
-        elif CC_target == "ibm-clang64":
-            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "ibm-clang++64")
-        elif CC_target == "ibm-clang":
-            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "ibm-clang++")
-        else:
-            # Node.js versions prior to v18:
-            makedep_arguments = "-qmakedep=gcc"
-            CXX_target = GetEnvironFallback(("CXX_target", "CXX"), "njsc++")
-        header_params.update(
-            {
-                "makedep_args": makedep_arguments,
-                "target_link_command_flavor": "os390",
-                "CC.target": CC_target,
-                "CXX.target": CXX_target,
-            }
-        )
-    elif target_flavor == "aix":
-        header_params.update(
-            {
-                "target_link_command_flavor": "aix",
-            }
-        )
-    elif target_flavor == "os400":
-        header_params.update(
-            {
-                "target_link_command_flavor": "os400",
-            }
-        )
-
 
     build_file, _, _ = gyp.common.ParseQualifiedTarget(target_list[0])
     make_global_settings_array = data[build_file].get("make_global_settings", [])
@@ -2568,22 +2610,20 @@ def GenerateOutput(target_list, target_dicts, data, params):
 
     # Put build-time support tools next to the root Makefile.
     dest_path = os.path.dirname(makefile_path)
-    gyp.common.CopyTool(gyp.common.GetPlatformFlavor(), dest_path)
+    gyp.common.CopyTool(flavor, dest_path)
 
     # Find the list of targets that derive from the gyp file(s) being built.
     needed_targets = set()
     for build_file in params["build_files"]:
-        for target in gyp.common.AllTargets(target_list, target_dicts, build_file):
-            needed_targets.add(target)
+        if build_file in toolset_buildfiles:
+            if gyp.common.BuildFileTargets(target_list, build_file):
+                for target in gyp.common.AllTargets(target_list, target_dicts, build_file):
+                    needed_targets.add(target)
 
     build_files = set()
     include_list = set()
     for qualified_target in target_list:
         build_file, target, toolset = gyp.common.ParseQualifiedTarget(qualified_target)
-        if toolset=="host":
-          current_flavor = host_flavor
-        else:
-          current_flavor = target_flavor
 
         this_make_global_settings = data[build_file].get("make_global_settings", [])
         assert make_global_settings_array == this_make_global_settings, (
@@ -2618,10 +2658,11 @@ def GenerateOutput(target_list, target_dicts, data, params):
         spec = target_dicts[qualified_target]
         configs = spec["configurations"]
 
-        if current_flavor == "mac":
+        if flavor == "mac":
             gyp.xcode_emulation.MergeGlobalXcodeSettingsToSpec(data[build_file], spec)
 
-        writer = MakefileWriter(generator_flags, current_flavor)
+        writer = MakefileWriter(generator_flags, flavor)
+        print("TRACE: writing target:%s" % qualified_target)
         writer.Write(
             qualified_target,
             base_path,

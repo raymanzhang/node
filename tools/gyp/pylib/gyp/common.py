@@ -306,9 +306,10 @@ def DeepDependencyTargets(target_dicts, roots):
         # Add it.
         dependencies.add(r)
         # Add its children.
-        spec = target_dicts[r]
-        pending.update(set(spec.get("dependencies", [])))
-        pending.update(set(spec.get("dependencies_original", [])))
+        if r in target_dicts:
+            spec = target_dicts[r]
+            pending.update(set(spec.get("dependencies", [])))
+            pending.update(set(spec.get("dependencies_original", [])))
     return list(dependencies - set(roots))
 
 
@@ -422,15 +423,18 @@ def EnsureDirExists(path):
     except OSError:
         pass
 
-def GetPlatformFlavor():
-    """Returns the flavor for the given platform."""
+def GetFlavor(params):
+    """Returns |params.flavor| if it's set, the system's default flavor else."""
     flavors = {
         "cygwin": "win",
         "win32": "win",
         "darwin": "mac",
     }
+
+    if "flavor" in params:
+        return params["flavor"]
     if sys.platform in flavors:
-        return flavors[sys.platform]    
+        return flavors[sys.platform]
     if sys.platform.startswith("sunos"):
         return "solaris"
     if sys.platform.startswith(("dragonfly", "freebsd")):
@@ -447,19 +451,6 @@ def GetPlatformFlavor():
         return "os400"
 
     return "linux"
-
-def GetFlavor(params):
-    """Returns |params.flavor| if it's set, the system's default flavor else."""
-    flavors = {
-        "cygwin": "win",
-        "win32": "win",
-        "darwin": "mac",
-    }
-
-    if "flavor" in params:
-        return params["flavor"]
-    return GetPlatformFlavor()
-
 
 def CopyTool(flavor, out_path, generator_flags={}):
     """Finds (flock|mac|win)_tool.gyp in the gyp directory and copies it

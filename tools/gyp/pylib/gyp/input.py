@@ -1302,21 +1302,8 @@ def ProcessVariablesAndConditionsInDict(
 
     # Make a copy of the variables_in dict that can be modified during the
     # loading of automatics and the loading of the variables dict.
-    print("Using OS:%s" % variables_in["OS"])
     variables = variables_in.copy()
     LoadAutomaticVariablesFromDict(variables, the_dict)
-
-    if "targets" in build_file_data:
-        target_list = build_file_data["targets"]
-        for target in target_list:
-            if "toolset" in target and "toolsets" not in target:
-                if target["toolset"]=="host":
-                    variables["OS"] = gyp.common.GetPlatformFlavor()
-                else:
-                    variables["OS"] = default_os;
-                print("TRACE: toolset: %s, %s\n" % (target["toolset"], variables["OS"]))
-            else:
-                println("toolset not found in data")
 
     if "variables" in the_dict:
         # Make sure all the local variables are added to the variables
