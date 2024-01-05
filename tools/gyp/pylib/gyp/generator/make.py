@@ -2391,7 +2391,6 @@ def PerformBuild(data, configurations, params):
 def GenerateOutput(target_list, target_dicts, data, params):
     options = params["options"]
     flavor = gyp.common.GetFlavor(params)
-    toolset_filter = options.toolset_filter
 
     generator_flags = params.get("generator_flags", {})
     builddir_name = generator_flags.get("output_dir", "out")
@@ -2425,7 +2424,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     target_list_tmp = target_list.copy()
     toolset_buildfiles = set()
     for target in target_list_tmp:
-        if (toolset_filter is None or target_dicts[target]["toolset"] in toolset_filter):
+        if (option.toolset is None or target_dicts[target]["toolset"] in option.toolset):
             build_file, _, _ = gyp.common.ParseQualifiedTarget(target)
             toolset_buildfiles.add(build_file)
         else:

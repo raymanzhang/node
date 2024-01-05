@@ -475,7 +475,7 @@ def gyp_main(args):
     )
     parser.add_argument(
         "--toolset",
-        dest="toolset_filter",
+        dest="toolset",
         action="store",
         default=None,
         help="Toolset to be used",

@@ -130,7 +130,7 @@ parser.add_argument('--dest-os',
 
 parser.add_argument(
     "--toolset",
-    dest="toolset_filter",
+    dest="toolset",
     action="store",
     default=None,
     help="Toolset to be used",
@@ -2154,8 +2154,8 @@ elif flavor == 'win' and sys.platform != 'msys':
 else:
   gyp_args += ['-f', 'make-' + flavor]
 
-if options.toolset_filter:
-  gyp_args += ['--toolset', options.toolset_filter]
+if options.toolset:
+  gyp_args += ['--toolset', options.toolset]
 
 if options.compile_commands_json:
   gyp_args += ['-f', 'compile_commands_json']
