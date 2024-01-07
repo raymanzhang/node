@@ -1,0 +1,1 @@
+./configure --dest-os=ios --dest-cpu=arm64 --with-arm-float-abi=hard --toolset=target --cross-compiling --openssl-no-asm
