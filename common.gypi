@@ -557,7 +557,7 @@
           }],
         ],
       }],
-      ['OS=="mac"', {
+      ['OS in "mac ios"', {
         'defines': ['_DARWIN_USE_64_BIT_INODE=1'],
         'xcode_settings': {
           'ALWAYS_SEARCH_USER_PATHS': 'NO',

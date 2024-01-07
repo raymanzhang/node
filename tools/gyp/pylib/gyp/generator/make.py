@@ -2423,7 +2423,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     target_list_tmp = target_list.copy()
     toolset_buildfiles = set()
     for target in target_list_tmp:
-        if (option.toolset is None or target_dicts[target]["toolset"] in option.toolset):
+        if (options.toolset is None or target_dicts[target]["toolset"] in options.toolset):
             build_file, _, _ = gyp.common.ParseQualifiedTarget(target)
             toolset_buildfiles.add(build_file)
         else:
