@@ -105,7 +105,7 @@
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
         'v8_base': '<(PRODUCT_DIR)/obj.target/tools/v8_gypfiles/libv8_snapshot.a',
       }],
-      ['OS=="mac"', {
+      ['OS in "mac ios"', {
         'clang%': 1,
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
         'v8_base': '<(PRODUCT_DIR)/libv8_snapshot.a',
@@ -568,7 +568,6 @@
           'GCC_ENABLE_CPP_RTTI': 'NO',              # -fno-rtti
           'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
           'PREBINDING': 'NO',                       # No -Wl,-prebind
-          'MACOSX_DEPLOYMENT_TARGET': '11.0',       # -mmacosx-version-min=11.0
           'USE_HEADERMAP': 'NO',
           'OTHER_CFLAGS': [
             '-fno-strict-aliasing',
@@ -611,6 +610,9 @@
               'CLANG_CXX_LIBRARY': 'libc++',
             },
           }],
+          ['OS=="mac"', {'xcode_settings':{'MACOSX_DEPLOYMENT_TARGET': '11.0'}},
+           'OS=="ios"', {'xcode_settings':{'IPHONEOS_DEPLOYMENT_TARGET': '12.0'}},
+          ],
         ],
       }],
       ['OS=="freebsd"', {
