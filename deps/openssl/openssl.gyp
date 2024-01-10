@@ -15,7 +15,7 @@
         'obj_dir_abs%': '<(PRODUCT_DIR_ABS)/obj.target',
         'modules_dir': '<(PRODUCT_DIR_ABS)/obj.target/deps/openssl/lib/openssl-modules',
       }],
-      ['OS=="mac"', {
+      ['OS in ("mac", "ios")', {
         'obj_dir_abs%': '<(PRODUCT_DIR_ABS)/obj.target',
         'modules_dir': '<(PRODUCT_DIR_ABS)/obj.target/deps/openssl/lib/openssl-modules',
       }],

@@ -44,7 +44,7 @@
           '-luser32.lib',
         ],
       },
-    }, 'OS=="mac"', {
+    }, 'OS in ("mac", "ios")', {
       'xcode_settings': {
         'WARNING_CFLAGS': ['-Wno-missing-field-initializers']
       },
