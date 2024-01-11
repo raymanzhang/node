@@ -610,9 +610,26 @@
               'CLANG_CXX_LIBRARY': 'libc++',
             },
           }],
-          ['OS=="mac"', {'xcode_settings':{'MACOSX_DEPLOYMENT_TARGET': '11.0', 'SDKROOT':'macosx'}},
-           'OS=="ios"', {'xcode_settings':{'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphoneos'}},
-          ],
+          ['OS=="mac"', {
+            'xcode_settings':{
+              'MACOSX_DEPLOYMENT_TARGET': '11.0',
+              'SDKROOT':'macosx'
+            },
+          }],
+          ['OS=="ios"', {
+            'conditions': [
+              ['target_arch=="arm64"', {
+                'xcode_settings':{
+                  'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphoneos'
+                },
+              }],
+              ['target_arch=="x64"', {
+                  'xcode_settings':{
+                  'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphonesimulator'
+                },
+              }],
+            ],
+          }],
         ],
       }],
       ['OS=="freebsd"', {
