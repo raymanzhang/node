@@ -105,7 +105,7 @@
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
         'v8_base': '<(PRODUCT_DIR)/obj.target/tools/v8_gypfiles/libv8_snapshot.a',
       }],
-      ['OS in "mac ios"', {
+      ['OS in ("mac", "ios")', {
         'clang%': 1,
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
         'v8_base': '<(PRODUCT_DIR)/libv8_snapshot.a',
@@ -219,7 +219,7 @@
             # increase performance, number from experimentation
             'cflags': [ '-qINLINE=::150:100000' ]
           }],
-          ['OS!="mac" and OS!="win" and OS!="zos"', {
+          ['OS!="mac" and OS!="ios" and OS!="win" and OS!="zos"', {
             # -fno-omit-frame-pointer is necessary for the --perf_basic_prof
             # flag to work correctly. perf(1) gets confused about JS stack
             # frames otherwise, even with --call-graph dwarf.
@@ -346,7 +346,7 @@
       [ 'target_arch=="arm64"', {
         'msvs_configuration_platform': 'arm64',
       }],
-      ['asan == 1 and OS != "mac" and OS != "zos"', {
+      ['asan == 1 and OS != "mac" and OS!="ios" and OS != "zos"', {
         'cflags+': [
           '-fno-omit-frame-pointer',
           '-fsanitize=address',
@@ -356,7 +356,7 @@
         'cflags!': [ '-fomit-frame-pointer' ],
         'ldflags': [ '-fsanitize=address' ],
       }],
-      ['asan == 1 and OS == "mac"', {
+      ['asan == 1 and OS in ("mac","ios")', {
         'xcode_settings': {
           'OTHER_CFLAGS+': [
             '-fno-omit-frame-pointer',
@@ -557,7 +557,7 @@
           }],
         ],
       }],
-      ['OS in "mac ios"', {
+      ['OS in ("mac", "ios")', {
         'defines': ['_DARWIN_USE_64_BIT_INODE=1'],
         'xcode_settings': {
           'ALWAYS_SEARCH_USER_PATHS': 'NO',
@@ -610,8 +610,8 @@
               'CLANG_CXX_LIBRARY': 'libc++',
             },
           }],
-          ['OS=="mac"', {'xcode_settings':{'MACOSX_DEPLOYMENT_TARGET': '11.0'}},
-           'OS=="ios"', {'xcode_settings':{'IPHONEOS_DEPLOYMENT_TARGET': '12.0'}},
+          ['OS=="mac"', {'xcode_settings':{'MACOSX_DEPLOYMENT_TARGET': '11.0', 'SDKROOT':'macosx'}},
+           'OS=="ios"', {'xcode_settings':{'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphoneos'}},
           ],
         ],
       }],
