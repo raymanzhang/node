@@ -548,7 +548,7 @@
       ['OS=="android"', {
         'target_conditions': [
           ['_toolset=="target"', {
-            'defines': [ '_GLIBCXX_USE_C99_MATH' ],
+            'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
             'libraries': [ '-llog' ],
           }],
           ['_toolset=="host"', {
@@ -617,18 +617,24 @@
             },
           }],
           ['OS=="ios"', {
+            'xcode_settings':{
+              'IPHONEOS_DEPLOYMENT_TARGET': '13.0',
+              'SDKROOT': '<(ios_sdk)',
+            },
             'conditions': [
-              ['target_arch=="arm64"', {
+              ['ios_sdk=="iphoneos"',{
                 'xcode_settings':{
-                  'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphoneos'
-                },
+                  'OTHER_CFLAGS': ['-target <(target_arch)-apple-ios'],
+                  'OTHER_LDFLAGS': ['-target <(target_arch)-apple-ios'],
+                }
               }],
-              ['target_arch=="x64"', {
-                  'xcode_settings':{
-                  'IPHONEOS_DEPLOYMENT_TARGET': '12.0', 'SDKROOT':'iphonesimulator'
-                },
+              ['ios_sdk=="iphonesimulator"', {
+                'xcode_settings':{
+                  'OTHER_CFLAGS': ['-target <(target_arch)-apple-ios-simulator'],
+                  'OTHER_LDFLAGS': ['-target <(target_arch)-apple-ios-simulator'],
+                }
               }],
-            ],
+            ]
           }],
         ],
       }],

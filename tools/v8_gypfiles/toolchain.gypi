@@ -766,7 +766,7 @@
                   '-ffunction-sections',
                 ],
               }],
-              ['OS=="mac"', {
+              ['OS in ("mac", "ios")', {
                 'xcode_settings': {
                   'GCC_OPTIMIZATION_LEVEL': '0',  # -O0
                 },
@@ -827,7 +827,7 @@
                    }],
                 ],
               }],
-              ['OS=="mac"', {
+              ['OS in ("mac", "ios")', {
                 'xcode_settings': {
                   'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
                   'GCC_STRICT_ALIASING': 'YES',
@@ -886,7 +886,7 @@
               '-O2',
             ],
           }],
-          ['OS=="mac"', {
+          ['OS in ("mac", "ios")', {
             'xcode_settings': {
               'GCC_OPTIMIZATION_LEVEL': '3',  # -O3
 

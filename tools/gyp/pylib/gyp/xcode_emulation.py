@@ -1004,7 +1004,7 @@ class XcodeSettings:
         self.configname = configname
         libtoolflags = []
 
-        for libtoolflag in self._Settings().get("OTHER_LDFLAGS", []):
+        for libtoolflag in self._Settings().get("OTHER_LIBTOOLFLAGS", []):
             libtoolflags.append(libtoolflag)
         # TODO(thakis): ARCHS?
 

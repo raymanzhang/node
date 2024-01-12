@@ -55,6 +55,7 @@ valid_mips_arch = ('loongson', 'r1', 'r2', 'r6', 'rx')
 valid_mips_fpu = ('fp32', 'fp64', 'fpxx')
 valid_mips_float_abi = ('soft', 'hard')
 valid_intl_modes = ('none', 'small-icu', 'full-icu', 'system-icu')
+valid_toolset = ('host', 'target')
 icu_versions = json.loads((tools_path / 'icu' / 'icu_versions.json').read_text(encoding='utf-8'))
 
 shareable_builtins = {'cjs_module_lexer/lexer': 'deps/cjs-module-lexer/lexer.js',
@@ -133,8 +134,7 @@ parser.add_argument(
     dest="toolset",
     action="store",
     default=None,
-    help="Toolset to be used",
-)
+    help=f"Toolset to be used for build({', '.join(valid_toolset)})")
 
 parser.add_argument('--error-on-warn',
     action='store_true',
