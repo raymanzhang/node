@@ -439,7 +439,7 @@
       }],
       [ 'OS in "linux freebsd openbsd solaris android aix os400 cloudabi"', {
         'cflags': [ '-Wall', '-Wextra', '-Wno-unused-parameter', ],
-        'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=c++17' ],
+        'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=gnu++17' ],
         'defines': [ '__STDC_FORMAT_MACROS' ],
         'ldflags': [ '-rdynamic' ],
         'target_conditions': [
@@ -549,7 +549,7 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
-            'libraries': [ '-llog', '-lcpufeatures' ],
+            'libraries': [ '-llog', '-lz' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],
