@@ -45,7 +45,7 @@
       'type': 'static_library',
       'include_dirs': ['c/include'],
       'conditions': [
-        ['OS=="linux"', {
+        ['OS in ("linux", "android")', {
           'defines': [
             'OS_LINUX'
           ]
@@ -55,7 +55,7 @@
             'OS_FREEBSD'
           ]
         }],
-        ['OS=="mac"', {
+        ['OS in ("mac","ios")', {
           'defines': [
             'OS_MACOSX'
           ]

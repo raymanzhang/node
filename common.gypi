@@ -550,6 +550,7 @@
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
             'libraries': [ '-llog', '-lz' ],
+            'ldflags': [ '-static-libstdc++' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],
