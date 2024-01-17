@@ -28,6 +28,7 @@
     'node_lib_target_name%': 'libnode',
     'node_intermediate_lib_type%': 'static_library',
     'node_builtin_modules_path%': '',
+
     'linked_module_files': [
     ],
     # We list the deps/ files out instead of globbing them in js2c.cc since we
@@ -519,7 +520,7 @@
 
       'include_dirs': [
         'src',
-        'deps/v8/include',
+        '<(v8_root_dir)/include',
         'deps/postject'
       ],
 
@@ -583,14 +584,14 @@
           'xcode_settings': {
             'OTHER_LDFLAGS': [
               '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)<(node_core_target_name)<(STATIC_LIB_SUFFIX)',
-              '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
+              '-Wl,-force_load,<(v8_base_without_compiler)',
             ],
           },
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalOptions': [
                 '/WHOLEARCHIVE:<(node_lib_target_name)<(STATIC_LIB_SUFFIX)',
-                '/WHOLEARCHIVE:<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
+                '/WHOLEARCHIVE:<(v8_base_without_compiler)',
               ],
             },
           },
@@ -599,7 +600,7 @@
               'ldflags': [
                 '-Wl,--whole-archive',
                 '<(obj_dir)/<(STATIC_LIB_PREFIX)<(node_core_target_name)<(STATIC_LIB_SUFFIX)',
-                '<(obj_dir)/tools/v8_gypfiles/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
+                '<(v8_base_without_compiler)',
                 '-Wl,--no-whole-archive',
               ],
             }],
@@ -819,6 +820,7 @@
       'include_dirs': [
         'src',
         'deps/postject',
+        '<(v8_include_dir)',
         '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
       ],
       'dependencies': [
@@ -835,7 +837,7 @@
       'sources': [
         '<@(node_sources)',
         # Dependency headers
-        'deps/v8/include/v8.h',
+        '<(v8_root_dir)/include/v8.h',
         'deps/postject/postject-api.h',
         # javascript files to make for an even more pleasant IDE experience
         '<@(library_files)',
@@ -1018,7 +1020,7 @@
       'include_dirs': [
         'src',
         'tools/msvs/genfiles',
-        'deps/v8/include',
+        '<(v8_root_dir)/include',
         'deps/cares/include',
         'deps/uv/include',
         'deps/uvwasi/include',
@@ -1070,7 +1072,7 @@
       'include_dirs': [
         'src',
         'tools/msvs/genfiles',
-        'deps/v8/include',
+        '<(v8_root_dir)/include',
         'deps/cares/include',
         'deps/uv/include',
         'deps/uvwasi/include',
@@ -1149,7 +1151,7 @@
       'include_dirs': [
         'src',
         'tools/msvs/genfiles',
-        'deps/v8/include',
+        '<(v8_root_dir)/include',
         'deps/cares/include',
         'deps/uv/include',
         'deps/uvwasi/include',
@@ -1160,7 +1162,7 @@
         'src/node_snapshot_stub.cc',
         'test/embedding/embedtest.cc',
       ],
-
+      'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler)'],
       'conditions': [
         ['OS=="solaris"', {
           'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
@@ -1260,7 +1262,7 @@
       'include_dirs': [
         'src',
         'tools/msvs/genfiles',
-        'deps/v8/include',
+        '<(v8_root_dir)/include',
         'deps/cares/include',
         'deps/uv/include',
         'deps/uvwasi/include',
@@ -1272,6 +1274,8 @@
         'src/node_snapshot_stub.cc',
         'tools/snapshot/node_mksnapshot.cc',
       ],
+
+      'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler)'],
 
       'conditions': [
         ['node_write_snapshot_as_array_literals=="true"', {
@@ -1322,7 +1326,7 @@
           'dependencies': ['<(node_lib_target_name)'],
           'include_dirs': [
             'src',
-            'deps/v8/include',
+            '<(v8_root_dir)/include',
           ],
           'sources': [
             '<@(library_files)',

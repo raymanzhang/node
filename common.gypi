@@ -88,27 +88,32 @@
 
     ##### end V8 defaults #####
 
+    # Variables for V8's build system.
+    'v8_root_dir%': 'deps/v8',
+    'v8_include_dir%': '<(v8_root_dir)/include',
+    'v8_obj_dir%': '<(PRODUCT_DIR)/obj/tools/v8_gypfiles',
+    'v8_base%': '<(v8_obj_dir)/libv8_snapshot.a',
+#    'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
+    'v8_monolith': '<(v8_obj_dir)/libv8_monolith.a',
+    'v8_base_without_compiler%': '<(v8_monolith)',
+
     'conditions': [
       ['OS == "win"', {
         'os_posix': 0,
         'v8_postmortem_support%': 0,
-        'obj_dir': '<(PRODUCT_DIR)/obj',
-        'v8_base': '<(PRODUCT_DIR)/lib/libv8_snapshot.a',
+        'obj_dir%': '<(PRODUCT_DIR)/obj',
       }, {
         'os_posix': 1,
         'v8_postmortem_support%': 1,
       }],
       ['GENERATOR == "ninja"', {
-        'obj_dir': '<(PRODUCT_DIR)/obj',
-        'v8_base': '<(PRODUCT_DIR)/obj/tools/v8_gypfiles/libv8_snapshot.a',
+        'obj_dir%': '<(PRODUCT_DIR)/obj',
       }, {
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
-        'v8_base': '<(PRODUCT_DIR)/obj.target/tools/v8_gypfiles/libv8_snapshot.a',
       }],
       ['OS in ("mac", "ios")', {
         'clang%': 1,
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
-        'v8_base': '<(PRODUCT_DIR)/libv8_snapshot.a',
       }],
       # V8 pointer compression only supports 64bit architectures.
       ['target_arch in "arm ia32 mips mipsel ppc"', {

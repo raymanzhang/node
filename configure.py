@@ -776,6 +776,18 @@ parser.add_argument('--without-bundled-v8',
     help='do not use V8 includes from the bundled deps folder. ' +
          '(This mode is not officially supported for regular applications)')
 
+parser.add_argument('--v8-obj-dir',
+    action='store',
+    dest='v8_obj_dir',
+    help='When using --without-bundled-v8, this option specifies the path to the '
+         'V8 library. ')
+
+parser.add_argument('--v8-root-dir',
+    action='store',
+    dest='v8_root_dir',
+    help='When using --without-bundled-v8, this option specifies the path to the '
+         'V8 root dir. ')
+
 parser.add_argument('--verbose',
     action='store_true',
     dest='verbose',
@@ -1519,6 +1531,13 @@ def configure_v8(o):
   o['variables']['v8_trace_maps'] = 1 if options.trace_maps else 0
   o['variables']['node_use_v8_platform'] = b(not options.without_v8_platform)
   o['variables']['node_use_bundled_v8'] = b(not options.without_bundled_v8)
+  if options.without_bundled_v8:
+    if options.v8_obj_dir and options.v8_root_dir:
+      o['variables']['v8_obj_dir'] = options.v8_obj_dir
+      o['variables']['v8_root_dir'] = options.v8_root_dir
+    else:
+      error('--without-bundled-v8 requires --v8-root-dir and --v8-obj-dir')
+
   o['variables']['force_dynamic_crt'] = 1 if options.shared else 0
   o['variables']['node_enable_d8'] = b(options.enable_d8)
   if options.enable_d8:
