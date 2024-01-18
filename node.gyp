@@ -1162,7 +1162,7 @@
         'src/node_snapshot_stub.cc',
         'test/embedding/embedtest.cc',
       ],
-      'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler)'],
+      'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
       'conditions': [
         ['OS=="solaris"', {
           'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]

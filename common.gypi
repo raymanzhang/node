@@ -95,8 +95,10 @@
     'v8_base%': '<(v8_obj_dir)/libv8_snapshot.a',
 #    'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
     'v8_monolith': '<(v8_obj_dir)/libv8_monolith.a',
-    'v8_base_without_compiler%': '<(v8_monolith)',
-
+    'v8_ndk_lib_base': '<(v8_root_dir)/third_party/android_toolchain/ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/',
+    'v8_libs': '<(v8_ndk_lib_base)/libc++abi.a',
+#    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_base_without_compiler.a <(v8_obj_dir)/libwee8.a <(v8_obj_dir)/libv8_libplatform.a <(v8_obj_dir)/libv8_heap_base.a /home/rayman/source/v8/v8/out.gn/arm64.release/libc++_chrome.so',
+    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_monolith.a',
     'conditions': [
       ['OS == "win"', {
         'os_posix': 0,
