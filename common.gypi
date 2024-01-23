@@ -89,16 +89,16 @@
     ##### end V8 defaults #####
 
     # Variables for V8's build system.
-    'v8_root_dir%': 'deps/v8',
-    'v8_include_dir%': '<(v8_root_dir)/include',
-    'v8_obj_dir%': '<(PRODUCT_DIR)/obj/tools/v8_gypfiles',
-    'v8_base%': '<(v8_obj_dir)/libv8_snapshot.a',
-#    'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
+    'v8_root_dir': 'deps/v8',
+    'v8_include_dir': '<(v8_root_dir)/include',
+    'obj_dir': '<(PRODUCT_DIR)/obj.target',
+    'v8_obj_dir': '<(obj_dir)/tools/v8_gypfiles',
+    'v8_base': '<(v8_obj_dir)/libv8_snapshot.a',
+    'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
     'v8_monolith': '<(v8_obj_dir)/libv8_monolith.a',
-    'v8_ndk_lib_base': '<(v8_root_dir)/third_party/android_toolchain/ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/',
-    'v8_libs': '<(v8_ndk_lib_base)/libc++abi.a',
-#    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_base_without_compiler.a <(v8_obj_dir)/libwee8.a <(v8_obj_dir)/libv8_libplatform.a <(v8_obj_dir)/libv8_heap_base.a /home/rayman/source/v8/v8/out.gn/arm64.release/libc++_chrome.so',
-    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_monolith.a',
+    'v8_libs': '',
+#    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_base_without_compiler.a <(v8_obj_dir)/libv8_libplatform.a <(v8_obj_dir)/libv8_libbase.a <(v8_obj_dir)/libcppgc_base.a <(v8_obj_dir)/libtorque_generated_definitions.a <(v8_obj_dir)/libv8_heap_base.a <(v8_obj_dir)/libv8_bigint.a',
+#    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_monolith.a',
     'conditions': [
       ['OS == "win"', {
         'os_posix': 0,
@@ -131,6 +131,11 @@
       ['OS == "zos"', {
         # use ICU data file on z/OS
         'icu_use_data_file_flag%': 1
+      }],
+      ['OS == "android"', {
+        # 'v8_ndk_lib_base': '<(android_ndk_path)/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android',
+        # #    'v8_ndk_lib_base': '<(v8_root_dir)/third_party/android_toolchain/ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android',
+        # 'v8_libs': '<(v8_ndk_lib_base)/libc++abi.a',
       }]
     ],
   },
@@ -557,7 +562,6 @@
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
             'libraries': [ '-llog', '-lz' ],
-            'ldflags': [ '-static-libstdc++' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],
