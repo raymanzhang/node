@@ -93,10 +93,12 @@
     'v8_include_dir': '<(v8_root_dir)/include',
     'obj_dir': '<(PRODUCT_DIR)/obj.target',
     'v8_obj_dir': '<(obj_dir)/tools/v8_gypfiles',
-    'v8_base': '<(v8_obj_dir)/libv8_snapshot.a',
-    'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
-    'v8_monolith': '<(v8_obj_dir)/libv8_monolith.a',
+    # 'v8_libs': '<(v8_obj_dir)/libv8_monolith.a',
     'v8_libs': '',
+    'v8_base': '<(v8_libs)',
+    'v8_base_without_compiler': '<(v8_obj_dir)/libv8_monolith.a',
+    # 'v8_base': '<(v8_obj_dir)/libv8_snapshot.a',
+    # 'v8_base_without_compiler': '<(v8_obj_dir)/<(STATIC_LIB_PREFIX)v8_base_without_compiler<(STATIC_LIB_SUFFIX)',
 #    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_base_without_compiler.a <(v8_obj_dir)/libv8_libplatform.a <(v8_obj_dir)/libv8_libbase.a <(v8_obj_dir)/libcppgc_base.a <(v8_obj_dir)/libtorque_generated_definitions.a <(v8_obj_dir)/libv8_heap_base.a <(v8_obj_dir)/libv8_bigint.a',
 #    'v8_base_without_compiler%': '<(v8_obj_dir)/libv8_monolith.a',
     'conditions': [
@@ -562,6 +564,7 @@
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
             'libraries': [ '-llog', '-lz' ],
+            # 'libraries': [ '-llog' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],

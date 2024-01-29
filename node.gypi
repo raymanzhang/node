@@ -112,11 +112,19 @@
     }],
     [ 'v8_enable_i18n_support==1', {
       'defines': [ 'NODE_HAVE_I18N_SUPPORT=1' ],
-      'dependencies': [
-        '<(icu_gyp_path):icui18n',
-        '<(icu_gyp_path):icuuc',
-      ],
       'conditions': [
+        [ 'node_use_bundled_v8=="true"', {
+          'dependencies': [
+            '<(icu_gyp_path):icui18n',
+            '<(icu_gyp_path):icuuc',
+          ],
+        }, {
+          'include_dirs': [
+            '<(v8_root_dir)/third_party/icu/source/common',
+            '<(v8_root_dir)/third_party/icu/source/i18n'
+          ],
+          # 'libraries': [ '-licui18n', '-licuuc' ],
+        }],
         [ 'icu_small=="true"', {
           'defines': [ 'NODE_HAVE_SMALL_ICU=1' ],
           'conditions': [
@@ -139,7 +147,7 @@
     [ 'node_no_browser_globals=="true"', {
       'defines': [ 'NODE_NO_BROWSER_GLOBALS' ],
     } ],
-    [ 'node_shared_zlib=="false"', {
+    [ 'node_shared_zlib=="false" and node_use_bundled_v8=="true" ', {
       'dependencies': [ 'deps/zlib/zlib.gyp:zlib' ],
       'defines': [ 'NODE_BUNDLED_ZLIB' ],
       'conditions': [
