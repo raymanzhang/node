@@ -554,6 +554,16 @@
       'msvs_disabled_warnings!': [4244],
 
       'conditions': [
+        [ 'node_use_bundled_v8=="false"', {
+          'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-Wl,-force_load,<(v8_base_without_compiler)',
+              '-lz',
+              '-framework CoreFoundation',
+            ],
+          },
+        }],
         [ 'error_on_warn=="true"', {
           'cflags': ['-Werror'],
           'xcode_settings': {
@@ -1086,8 +1096,17 @@
       ],
 
       'sources': [ '<@(node_cctest_sources)' ],
-
       'conditions': [
+        [ 'node_use_bundled_v8=="false"', {
+          'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-Wl,-force_load,<(v8_base_without_compiler)',
+              '-lz',
+              '-framework CoreFoundation',
+            ],
+          },
+        }],
         [ 'node_use_openssl=="true"', {
           'defines': [
             'HAVE_OPENSSL=1',
@@ -1162,8 +1181,17 @@
         'src/node_snapshot_stub.cc',
         'test/embedding/embedtest.cc',
       ],
-      'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
       'conditions': [
+        [ 'node_use_bundled_v8=="false"', {
+          'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-Wl,-force_load,<(v8_base_without_compiler)',
+              '-lz',
+              '-framework CoreFoundation',
+            ],
+          },
+        }],
         ['OS=="solaris"', {
           'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
         }],
@@ -1278,6 +1306,16 @@
       'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler)'],
 
       'conditions': [
+        [ 'node_use_bundled_v8=="false"', {
+          'ldflags': ['-Wl,--whole-archive <(v8_base_without_compiler) <(v8_libs)'],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-Wl,-force_load,<(v8_base_without_compiler)',
+              '-lz',
+              '-framework CoreFoundation',
+            ],
+          },
+        }],
         ['node_write_snapshot_as_array_literals=="true"', {
           'defines': [ 'NODE_MKSNAPSHOT_USE_ARRAY_LITERALS=1' ],
         }],
