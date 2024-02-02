@@ -873,7 +873,7 @@ var require_util = __commonJS({
     }
     __name(validateHandler, "validateHandler");
     function isDisturbed(body) {
-      return !!(body && (stream.isDisturbed ? stream.isDisturbed(body) || body[kBodyUsed] : body[kBodyUsed] || body.readableDidRead || body._readableState && body._readableState.dataEmitted || isReadableAborted(body)));
+      return !!(body && (stream.isDisturbed(body) || body[kBodyUsed]));
     }
     __name(isDisturbed, "isDisturbed");
     function isErrored(body) {
@@ -1344,6 +1344,13 @@ var require_dataURL = __commonJS({
       return byte >= 48 && byte <= 57 || byte >= 65 && byte <= 70 || byte >= 97 && byte <= 102;
     }
     __name(isHexCharByte, "isHexCharByte");
+    function hexByteToNumber(byte) {
+      return (
+        // 0-9
+        byte >= 48 && byte <= 57 ? byte - 48 : (byte & 223) - 55
+      );
+    }
+    __name(hexByteToNumber, "hexByteToNumber");
     function percentDecode(input) {
       const length = input.length;
       const output = new Uint8Array(length);
@@ -1355,9 +1362,7 @@ var require_dataURL = __commonJS({
         } else if (byte === 37 && !(isHexCharByte(input[i + 1]) && isHexCharByte(input[i + 2]))) {
           output[j++] = 37;
         } else {
-          const nextTwoBytes = String.fromCharCode(input[i + 1], input[i + 2]);
-          const bytePoint = Number.parseInt(nextTwoBytes, 16);
-          output[j++] = bytePoint;
+          output[j++] = hexByteToNumber(input[i + 1]) << 4 | hexByteToNumber(input[i + 2]);
           i += 2;
         }
       }
@@ -1525,17 +1530,17 @@ var require_dataURL = __commonJS({
     }
     __name(isHTTPWhiteSpace, "isHTTPWhiteSpace");
     function removeHTTPWhitespace(str, leading = true, trailing = true) {
-      let i = 0;
-      let j = str.length;
+      let lead = 0;
+      let trail = str.length - 1;
       if (leading) {
-        while (j > i && isHTTPWhiteSpace(str.charCodeAt(i)))
-          --i;
+        while (lead < str.length && isHTTPWhiteSpace(str.charCodeAt(lead)))
+          lead++;
       }
       if (trailing) {
-        while (j > i && isHTTPWhiteSpace(str.charCodeAt(j - 1)))
-          --j;
+        while (trail > 0 && isHTTPWhiteSpace(str.charCodeAt(trail)))
+          trail--;
       }
-      return i === 0 && j === str.length ? str : str.substring(i, j);
+      return lead === 0 && trail === str.length - 1 ? str : str.slice(lead, trail + 1);
     }
     __name(removeHTTPWhitespace, "removeHTTPWhitespace");
     function isASCIIWhitespace(char) {
@@ -1543,17 +1548,17 @@ var require_dataURL = __commonJS({
     }
     __name(isASCIIWhitespace, "isASCIIWhitespace");
     function removeASCIIWhitespace(str, leading = true, trailing = true) {
-      let i = 0;
-      let j = str.length;
+      let lead = 0;
+      let trail = str.length - 1;
       if (leading) {
-        while (j > i && isASCIIWhitespace(str.charCodeAt(i)))
-          --i;
+        while (lead < str.length && isASCIIWhitespace(str.charCodeAt(lead)))
+          lead++;
       }
       if (trailing) {
-        while (j > i && isASCIIWhitespace(str.charCodeAt(j - 1)))
-          --j;
+        while (trail > 0 && isASCIIWhitespace(str.charCodeAt(trail)))
+          trail--;
       }
-      return i === 0 && j === str.length ? str : str.substring(i, j);
+      return lead === 0 && trail === str.length - 1 ? str : str.slice(lead, trail + 1);
     }
     __name(removeASCIIWhitespace, "removeASCIIWhitespace");
     module2.exports = {
@@ -1896,7 +1901,7 @@ var require_util2 = __commonJS({
       return false;
     }
     __name(bytesMatch, "bytesMatch");
-    var parseHashWithOptions = /((?<algo>sha256|sha384|sha512)-(?<hash>[A-z0-9+/]{1}.*={0,2}))( +[\x21-\x7e]?)?/i;
+    var parseHashWithOptions = /(?<algo>sha256|sha384|sha512)-(?<hash>[A-Za-z0-9+/]+={0,2}(?=\s|$))( +[!-~]*)?/i;
     function parseMetadata(metadata) {
       const result = [];
       let empty = true;
@@ -1949,7 +1954,7 @@ var require_util2 = __commonJS({
       return fetchParams.controller.state === "aborted" || fetchParams.controller.state === "terminated";
     }
     __name(isCancelled, "isCancelled");
-    var normalizeMethodRecord = {
+    var normalizeMethodRecordBase = {
       delete: "DELETE",
       DELETE: "DELETE",
       get: "GET",
@@ -1963,9 +1968,15 @@ var require_util2 = __commonJS({
       put: "PUT",
       PUT: "PUT"
     };
+    var normalizeMethodRecord = {
+      ...normalizeMethodRecordBase,
+      patch: "patch",
+      PATCH: "PATCH"
+    };
+    Object.setPrototypeOf(normalizeMethodRecordBase, null);
     Object.setPrototypeOf(normalizeMethodRecord, null);
     function normalizeMethod(method) {
-      return normalizeMethodRecord[method.toLowerCase()] ?? method;
+      return normalizeMethodRecordBase[method.toLowerCase()] ?? method;
     }
     __name(normalizeMethod, "normalizeMethod");
     function serializeJavascriptValueToJSONString(value) {
@@ -2250,7 +2261,8 @@ var require_util2 = __commonJS({
       readAllBytes,
       normalizeMethodRecord,
       simpleRangeHeaderValue,
-      buildContentRange
+      buildContentRange,
+      parseMetadata
     };
   }
 });
@@ -2598,13 +2610,13 @@ var require_webidl = __commonJS({
     };
     webidl.converters.BufferSource = function(V, opts = {}) {
       if (types.isAnyArrayBuffer(V)) {
-        return webidl.converters.ArrayBuffer(V, opts);
+        return webidl.converters.ArrayBuffer(V, { ...opts, allowShared: false });
       }
       if (types.isTypedArray(V)) {
-        return webidl.converters.TypedArray(V, V.constructor);
+        return webidl.converters.TypedArray(V, V.constructor, { ...opts, allowShared: false });
       }
       if (types.isDataView(V)) {
-        return webidl.converters.DataView(V, opts);
+        return webidl.converters.DataView(V, opts, { ...opts, allowShared: false });
       }
       throw new TypeError(`Could not convert ${V} to a BufferSource.`);
     };
@@ -5211,7 +5223,7 @@ var require_file = __commonJS({
             s = convertLineEndingsNative(s);
           }
           bytes.push(encoder.encode(s));
-        } else if (types.isAnyArrayBuffer(element) || types.isTypedArray(element)) {
+        } else if (ArrayBuffer.isView(element) || types.isArrayBuffer(element)) {
           if (!element.buffer) {
             bytes.push(new Uint8Array(element));
           } else {
@@ -5420,7 +5432,7 @@ var require_body = __commonJS({
     var { kState } = require_symbols2();
     var { webidl } = require_webidl();
     var { Blob: Blob2, File: NativeFile } = require("buffer");
-    var { kBodyUsed } = require_symbols();
+    var { kBodyUsed, kHeadersList } = require_symbols();
     var assert = require("assert");
     var { isErrored } = require_util();
     var { isUint8Array, isArrayBuffer } = require("util/types");
@@ -5636,8 +5648,9 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         async formData() {
           webidl.brandCheck(this, instance);
           throwIfAborted(this[kState]);
-          const contentType = this.headers.get("Content-Type");
-          if (/multipart\/form-data/.test(contentType)) {
+          const contentType = this.headers[kHeadersList].get("content-type", true);
+          const mimeType = contentType !== null ? parseMIMEType(contentType) : "failure";
+          if (mimeType !== "failure" && mimeType.essence === "multipart/form-data") {
             const headers = {};
             for (const [key, value] of this.headers)
               headers[key] = value;
@@ -5654,7 +5667,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
             busboy.on("field", (name, value) => {
               responseFormData.append(name, value);
             });
-            busboy.on("file", (name, value, filename, encoding, mimeType) => {
+            busboy.on("file", (name, value, filename, encoding, mimeType2) => {
               const chunks = [];
               if (encoding === "base64" || encoding.toLowerCase() === "base64") {
                 let base64chunk = "";
@@ -5666,14 +5679,14 @@ Content-Type: ${value.type || "application/octet-stream"}\r
                 });
                 value.on("end", () => {
                   chunks.push(Buffer.from(base64chunk, "base64"));
-                  responseFormData.append(name, new File(chunks, filename, { type: mimeType }));
+                  responseFormData.append(name, new File(chunks, filename, { type: mimeType2 }));
                 });
               } else {
                 value.on("data", (chunk) => {
                   chunks.push(chunk);
                 });
                 value.on("end", () => {
-                  responseFormData.append(name, new File(chunks, filename, { type: mimeType }));
+                  responseFormData.append(name, new File(chunks, filename, { type: mimeType2 }));
                 });
               }
             });
@@ -5687,7 +5700,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
             busboy.end();
             await busboyResolve;
             return responseFormData;
-          } else if (/application\/x-www-form-urlencoded/.test(contentType)) {
+          } else if (mimeType !== "failure" && mimeType.essence === "application/x-www-form-urlencoded") {
             let entries;
             try {
               let text = "";
@@ -6034,6 +6047,14 @@ var require_response = __commonJS({
       });
     }
     __name(makeNetworkError, "makeNetworkError");
+    function isNetworkError(response) {
+      return (
+        // A network error is a response whose type is "error",
+        response.type === "error" && // status is 0
+        response.status === 0
+      );
+    }
+    __name(isNetworkError, "isNetworkError");
     function makeFilteredResponse(response, state) {
       state = {
         internalResponse: response,
@@ -6136,7 +6157,7 @@ var require_response = __commonJS({
       if (isBlobLike(V)) {
         return webidl.converters.Blob(V, { strict: false });
       }
-      if (types.isArrayBuffer(V) || types.isTypedArray(V) || types.isDataView(V)) {
+      if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
         return webidl.converters.BufferSource(V);
       }
       if (util.isFormDataLike(V)) {
@@ -6173,6 +6194,7 @@ var require_response = __commonJS({
       }
     ]);
     module2.exports = {
+      isNetworkError,
       makeNetworkError,
       makeResponse,
       makeAppropriateNetworkError,
@@ -6214,6 +6236,8 @@ var require_dispatcher_weakref = __commonJS({
             }
           });
         }
+      }
+      unregister(key) {
       }
     };
     module2.exports = function() {
@@ -6265,6 +6289,7 @@ var require_request = __commonJS({
     var requestFinalizer = new FinalizationRegistry2(({ signal, abort }) => {
       signal.removeEventListener("abort", abort);
     });
+    var patchMethodWarning = false;
     var Request = class _Request {
       static {
         __name(this, "Request");
@@ -6434,14 +6459,25 @@ var require_request = __commonJS({
         }
         if (init.method !== void 0) {
           let method = init.method;
-          if (!isValidHTTPToken(method)) {
-            throw new TypeError(`'${method}' is not a valid HTTP method.`);
+          const mayBeNormalized = normalizeMethodRecord[method];
+          if (mayBeNormalized !== void 0) {
+            request.method = mayBeNormalized;
+          } else {
+            if (!isValidHTTPToken(method)) {
+              throw new TypeError(`'${method}' is not a valid HTTP method.`);
+            }
+            if (forbiddenMethodsSet.has(method.toUpperCase())) {
+              throw new TypeError(`'${method}' HTTP method is unsupported.`);
+            }
+            method = normalizeMethod(method);
+            request.method = method;
           }
-          if (forbiddenMethodsSet.has(method.toUpperCase())) {
-            throw new TypeError(`'${method}' HTTP method is unsupported.`);
+          if (!patchMethodWarning && request.method === "patch") {
+            process.emitWarning("Using `patch` is highly likely to result in a `405 Method Not Allowed`. `PATCH` is much more likely to succeed.", {
+              code: "UNDICI-FETCH-patch"
+            });
+            patchMethodWarning = true;
           }
-          method = normalizeMethodRecord[method] ?? normalizeMethod(method);
-          request.method = method;
         }
         if (init.signal !== void 0) {
           signal = init.signal;
@@ -6464,6 +6500,8 @@ var require_request = __commonJS({
             const abort = /* @__PURE__ */ __name(function() {
               const ac2 = acRef.deref();
               if (ac2 !== void 0) {
+                requestFinalizer.unregister(abort);
+                this.removeEventListener("abort", abort);
                 ac2.abort(this.reason);
               }
             }, "abort");
@@ -6476,7 +6514,7 @@ var require_request = __commonJS({
             } catch {
             }
             util.addAbortListener(signal, abort);
-            requestFinalizer.register(ac, { signal, abort });
+            requestFinalizer.register(ac, { signal, abort }, abort);
           }
         }
         this[kHeaders] = new Headers(kConstruct);
@@ -6515,7 +6553,7 @@ var require_request = __commonJS({
             request.keepalive
           );
           initBody = extractedBody;
-          if (contentType && !this[kHeaders][kHeadersList].contains("content-type")) {
+          if (contentType && !this[kHeaders][kHeadersList].contains("content-type", true)) {
             this[kHeaders].append("content-type", contentType);
           }
         }
@@ -6672,13 +6710,6 @@ var require_request = __commonJS({
           throw new TypeError("unusable");
         }
         const clonedRequest = cloneRequest(this[kState]);
-        const clonedRequestObject = new _Request(kConstruct);
-        clonedRequestObject[kState] = clonedRequest;
-        clonedRequestObject[kRealm] = this[kRealm];
-        clonedRequestObject[kHeaders] = new Headers(kConstruct);
-        clonedRequestObject[kHeaders][kHeadersList] = clonedRequest.headersList;
-        clonedRequestObject[kHeaders][kGuard] = this[kHeaders][kGuard];
-        clonedRequestObject[kHeaders][kRealm] = this[kHeaders][kRealm];
         const ac = new AbortController();
         if (this.signal.aborted) {
           ac.abort(this.signal.reason);
@@ -6690,8 +6721,7 @@ var require_request = __commonJS({
             }
           );
         }
-        clonedRequestObject[kSignal] = ac.signal;
-        return clonedRequestObject;
+        return fromInnerRequest(clonedRequest, ac.signal, this[kHeaders][kGuard], this[kRealm]);
       }
     };
     mixinBody(Request);
@@ -6747,6 +6777,19 @@ var require_request = __commonJS({
       return newRequest;
     }
     __name(cloneRequest, "cloneRequest");
+    function fromInnerRequest(innerRequest, signal, guard, realm) {
+      const request = new Request(kConstruct);
+      request[kState] = innerRequest;
+      request[kRealm] = realm;
+      request[kSignal] = signal;
+      request[kSignal][kRealm] = realm;
+      request[kHeaders] = new Headers(kConstruct);
+      request[kHeaders][kHeadersList] = innerRequest.headersList;
+      request[kHeaders][kGuard] = guard;
+      request[kHeaders][kRealm] = realm;
+      return request;
+    }
+    __name(fromInnerRequest, "fromInnerRequest");
     Object.defineProperties(Request.prototype, {
       method: kEnumerableProperty,
       url: kEnumerableProperty,
@@ -6864,7 +6907,7 @@ var require_request = __commonJS({
         allowedValues: requestDuplex
       }
     ]);
-    module2.exports = { Request, makeRequest };
+    module2.exports = { Request, makeRequest, fromInnerRequest };
   }
 });
 
@@ -7313,6 +7356,191 @@ var require_pool_base = __commonJS({
   }
 });
 
+// lib/core/diagnostics.js
+var require_diagnostics = __commonJS({
+  "lib/core/diagnostics.js"(exports2, module2) {
+    "use strict";
+    var diagnosticsChannel = require("diagnostics_channel");
+    var util = require("util");
+    var undiciDebugLog = util.debuglog("undici");
+    var fetchDebuglog = util.debuglog("fetch");
+    var websocketDebuglog = util.debuglog("websocket");
+    var isClientSet = false;
+    var channels = {
+      // Client
+      beforeConnect: diagnosticsChannel.channel("undici:client:beforeConnect"),
+      connected: diagnosticsChannel.channel("undici:client:connected"),
+      connectError: diagnosticsChannel.channel("undici:client:connectError"),
+      sendHeaders: diagnosticsChannel.channel("undici:client:sendHeaders"),
+      // Request
+      create: diagnosticsChannel.channel("undici:request:create"),
+      bodySent: diagnosticsChannel.channel("undici:request:bodySent"),
+      headers: diagnosticsChannel.channel("undici:request:headers"),
+      trailers: diagnosticsChannel.channel("undici:request:trailers"),
+      error: diagnosticsChannel.channel("undici:request:error"),
+      // WebSocket
+      open: diagnosticsChannel.channel("undici:websocket:open"),
+      close: diagnosticsChannel.channel("undici:websocket:close"),
+      socketError: diagnosticsChannel.channel("undici:websocket:socket_error"),
+      ping: diagnosticsChannel.channel("undici:websocket:ping"),
+      pong: diagnosticsChannel.channel("undici:websocket:pong")
+    };
+    if (undiciDebugLog.enabled || fetchDebuglog.enabled) {
+      const debuglog = fetchDebuglog.enabled ? fetchDebuglog : undiciDebugLog;
+      diagnosticsChannel.channel("undici:client:beforeConnect").subscribe((evt) => {
+        const {
+          connectParams: { version, protocol, port, host }
+        } = evt;
+        debuglog(
+          "connecting to %s using %s%s",
+          `${host}${port ? `:${port}` : ""}`,
+          protocol,
+          version
+        );
+      });
+      diagnosticsChannel.channel("undici:client:connected").subscribe((evt) => {
+        const {
+          connectParams: { version, protocol, port, host }
+        } = evt;
+        debuglog(
+          "connected to %s using %s%s",
+          `${host}${port ? `:${port}` : ""}`,
+          protocol,
+          version
+        );
+      });
+      diagnosticsChannel.channel("undici:client:connectError").subscribe((evt) => {
+        const {
+          connectParams: { version, protocol, port, host },
+          error
+        } = evt;
+        debuglog(
+          "connection to %s using %s%s errored - %s",
+          `${host}${port ? `:${port}` : ""}`,
+          protocol,
+          version,
+          error.message
+        );
+      });
+      diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
+        const {
+          request: { method, path, origin }
+        } = evt;
+        debuglog("sending request to %s %s/%s", method, origin, path);
+      });
+      diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
+        const {
+          request: { method, path, origin },
+          response: { statusCode }
+        } = evt;
+        debuglog(
+          "received response to %s %s/%s - HTTP %d",
+          method,
+          origin,
+          path,
+          statusCode
+        );
+      });
+      diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
+        const {
+          request: { method, path, origin }
+        } = evt;
+        debuglog("trailers received from %s %s/%s", method, origin, path);
+      });
+      diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
+        const {
+          request: { method, path, origin },
+          error
+        } = evt;
+        debuglog(
+          "request to %s %s/%s errored - %s",
+          method,
+          origin,
+          path,
+          error.message
+        );
+      });
+      isClientSet = true;
+    }
+    if (websocketDebuglog.enabled) {
+      if (!isClientSet) {
+        const debuglog = undiciDebugLog.enabled ? undiciDebugLog : websocketDebuglog;
+        diagnosticsChannel.channel("undici:client:beforeConnect").subscribe((evt) => {
+          const {
+            connectParams: { version, protocol, port, host }
+          } = evt;
+          debuglog(
+            "connecting to %s%s using %s%s",
+            host,
+            port ? `:${port}` : "",
+            protocol,
+            version
+          );
+        });
+        diagnosticsChannel.channel("undici:client:connected").subscribe((evt) => {
+          const {
+            connectParams: { version, protocol, port, host }
+          } = evt;
+          debuglog(
+            "connected to %s%s using %s%s",
+            host,
+            port ? `:${port}` : "",
+            protocol,
+            version
+          );
+        });
+        diagnosticsChannel.channel("undici:client:connectError").subscribe((evt) => {
+          const {
+            connectParams: { version, protocol, port, host },
+            error
+          } = evt;
+          debuglog(
+            "connection to %s%s using %s%s errored - %s",
+            host,
+            port ? `:${port}` : "",
+            protocol,
+            version,
+            error.message
+          );
+        });
+        diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
+          const {
+            request: { method, path, origin }
+          } = evt;
+          debuglog("sending request to %s %s/%s", method, origin, path);
+        });
+      }
+      diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
+        const {
+          address: { address, port }
+        } = evt;
+        websocketDebuglog("connection opened %s%s", address, port ? `:${port}` : "");
+      });
+      diagnosticsChannel.channel("undici:websocket:close").subscribe((evt) => {
+        const { websocket, code, reason } = evt;
+        websocketDebuglog(
+          "closed connection to %s - %s %s",
+          websocket.url,
+          code,
+          reason
+        );
+      });
+      diagnosticsChannel.channel("undici:websocket:socket_error").subscribe((err) => {
+        websocketDebuglog("connection errored - %s", err.message);
+      });
+      diagnosticsChannel.channel("undici:websocket:ping").subscribe((evt) => {
+        websocketDebuglog("ping received");
+      });
+      diagnosticsChannel.channel("undici:websocket:pong").subscribe((evt) => {
+        websocketDebuglog("pong received");
+      });
+    }
+    module2.exports = {
+      channels
+    };
+  }
+});
+
 // lib/timers.js
 var require_timers = __commonJS({
   "lib/timers.js"(exports2, module2) {
@@ -7411,26 +7639,12 @@ var require_request2 = __commonJS({
     var assert = require("assert");
     var { kHTTP2BuildRequest, kHTTP2CopyHeaders, kHTTP1BuildRequest } = require_symbols();
     var util = require_util();
+    var { channels } = require_diagnostics();
     var { headerNameLowerCasedRecord } = require_constants();
     var headerCharRegex = /[^\t\x20-\x7e\x80-\xff]/;
     var invalidPathRegex = /[^\u0021-\u00ff]/;
     var kHandler = Symbol("handler");
-    var channels = {};
     var extractBody;
-    try {
-      const diagnosticsChannel = require("diagnostics_channel");
-      channels.create = diagnosticsChannel.channel("undici:request:create");
-      channels.bodySent = diagnosticsChannel.channel("undici:request:bodySent");
-      channels.headers = diagnosticsChannel.channel("undici:request:headers");
-      channels.trailers = diagnosticsChannel.channel("undici:request:trailers");
-      channels.error = diagnosticsChannel.channel("undici:request:error");
-    } catch {
-      channels.create = { hasSubscribers: false };
-      channels.bodySent = { hasSubscribers: false };
-      channels.headers = { hasSubscribers: false };
-      channels.trailers = { hasSubscribers: false };
-      channels.error = { hasSubscribers: false };
-    }
     var Request = class _Request {
       static {
         __name(this, "Request");
@@ -8337,6 +8551,7 @@ var require_RedirectHandler = __commonJS({
         this.maxRedirections = maxRedirections;
         this.handler = handler;
         this.history = [];
+        this.redirectionLimitReached = false;
         if (util.isStream(this.opts.body)) {
           if (util.bodyLength(this.opts.body) === 0) {
             this.opts.body.on("data", function() {
@@ -8367,6 +8582,14 @@ var require_RedirectHandler = __commonJS({
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
+        if (this.opts.throwOnMaxRedirect && this.history.length >= this.maxRedirections) {
+          if (this.request) {
+            this.request.abort(new Error("max redirects"));
+          }
+          this.redirectionLimitReached = true;
+          this.abort(new Error("max redirects"));
+          return;
+        }
         if (this.opts.origin) {
           this.history.push(new URL(this.opts.path, this.opts.origin));
         }
@@ -8501,6 +8724,7 @@ var require_client = __commonJS({
     var http = require("http");
     var { pipeline } = require("stream");
     var util = require_util();
+    var { channels } = require_diagnostics();
     var timers = require_timers();
     var Request = require_request2();
     var DispatcherBase = require_dispatcher_base();
@@ -8591,19 +8815,6 @@ var require_client = __commonJS({
     var h2ExperimentalWarned = false;
     var FastBuffer = Buffer[Symbol.species];
     var kClosedResolve = Symbol("kClosedResolve");
-    var channels = {};
-    try {
-      const diagnosticsChannel = require("diagnostics_channel");
-      channels.sendHeaders = diagnosticsChannel.channel("undici:client:sendHeaders");
-      channels.beforeConnect = diagnosticsChannel.channel("undici:client:beforeConnect");
-      channels.connectError = diagnosticsChannel.channel("undici:client:connectError");
-      channels.connected = diagnosticsChannel.channel("undici:client:connected");
-    } catch {
-      channels.sendHeaders = { hasSubscribers: false };
-      channels.beforeConnect = { hasSubscribers: false };
-      channels.connectError = { hasSubscribers: false };
-      channels.connected = { hasSubscribers: false };
-    }
     var Client = class extends DispatcherBase {
       static {
         __name(this, "Client");
@@ -9411,6 +9622,7 @@ var require_client = __commonJS({
             hostname,
             protocol,
             port,
+            version: client[kHTTPConnVersion],
             servername: client[kServerName],
             localAddress: client[kLocalAddress]
           },
@@ -9488,6 +9700,7 @@ var require_client = __commonJS({
               hostname,
               protocol,
               port,
+              version: client[kHTTPConnVersion],
               servername: client[kServerName],
               localAddress: client[kLocalAddress]
             },
@@ -9508,6 +9721,7 @@ var require_client = __commonJS({
               hostname,
               protocol,
               port,
+              version: client[kHTTPConnVersion],
               servername: client[kServerName],
               localAddress: client[kLocalAddress]
             },
@@ -9770,16 +9984,6 @@ upgrade: ${upgrade}\r
         errorRequest(client, request, new Error("Upgrade not supported for H2"));
         return false;
       }
-      try {
-        request.onConnect((err) => {
-          if (request.aborted || request.completed) {
-            return;
-          }
-          errorRequest(client, request, err || new RequestAbortedError());
-        });
-      } catch (err) {
-        errorRequest(client, request, err);
-      }
       if (request.aborted) {
         return false;
       }
@@ -9787,6 +9991,24 @@ upgrade: ${upgrade}\r
       const h2State = client[kHTTP2SessionState];
       headers[HTTP2_HEADER_AUTHORITY] = host || client[kHost];
       headers[HTTP2_HEADER_METHOD] = method;
+      try {
+        request.onConnect((err) => {
+          if (request.aborted || request.completed) {
+            return;
+          }
+          err = err || new RequestAbortedError();
+          if (stream != null) {
+            util.destroy(stream, err);
+            h2State.openStreams -= 1;
+            if (h2State.openStreams === 0) {
+              session.unref();
+            }
+          }
+          errorRequest(client, request, err);
+        });
+      } catch (err) {
+        errorRequest(client, request, err);
+      }
       if (method === "CONNECT") {
         session.ref();
         stream = session.request(headers, { endStream: false, signal });
@@ -9831,7 +10053,7 @@ upgrade: ${upgrade}\r
         headers[HTTP2_HEADER_CONTENT_LENGTH] = `${contentLength}`;
       }
       session.ref();
-      const shouldEndStream = method === "GET" || method === "HEAD";
+      const shouldEndStream = method === "GET" || method === "HEAD" || body === null;
       if (expectContinue) {
         headers[HTTP2_HEADER_EXPECT] = "100-continue";
         stream = session.request(headers, { endStream: shouldEndStream, signal });
@@ -10565,7 +10787,7 @@ var require_fetch = __commonJS({
         this.emit("terminated", error);
       }
     };
-    function fetch2(input, init = {}) {
+    function fetch2(input, init = void 0) {
       webidl.argumentLengthCheck(arguments, 1, { header: "globalThis.fetch" });
       const p = createDeferredPromise();
       let requestObject;
@@ -10625,7 +10847,7 @@ var require_fetch = __commonJS({
         request,
         processResponseEndOfBody: handleFetchDone,
         processResponse,
-        dispatcher: init.dispatcher ?? getGlobalDispatcher()
+        dispatcher: init?.dispatcher ?? getGlobalDispatcher()
         // undici
       });
       return p.promise;
@@ -10671,9 +10893,6 @@ var require_fetch = __commonJS({
     }
     __name(markResourceTiming, "markResourceTiming");
     function abortFetch(p, request, responseObject, error) {
-      if (!error) {
-        error = new DOMException("The operation was aborted.", "AbortError");
-      }
       p.reject(error);
       if (request.body != null && isReadable(request.body?.stream)) {
         request.body.stream.cancel(error).catch((err) => {
@@ -10708,6 +10927,7 @@ var require_fetch = __commonJS({
       dispatcher
       // undici
     }) {
+      assert(dispatcher);
       let taskDestination = null;
       let crossOriginIsolatedCapability = false;
       if (request.client != null) {
@@ -11064,7 +11284,7 @@ var require_fetch = __commonJS({
       }
       if (redirectStatusSet.has(actualResponse.status)) {
         if (request.redirect !== "manual") {
-          fetchParams.controller.connection.destroy();
+          fetchParams.controller.connection.destroy(void 0, false);
         }
         if (request.redirect === "error") {
           response = makeNetworkError("unexpected redirect");
@@ -11265,10 +11485,12 @@ var require_fetch = __commonJS({
       fetchParams.controller.connection = {
         abort: null,
         destroyed: false,
-        destroy(err) {
+        destroy(err, abort = true) {
           if (!this.destroyed) {
             this.destroyed = true;
-            this.abort?.(err ?? new DOMException("The operation was aborted.", "AbortError"));
+            if (abort) {
+              this.abort?.(err ?? new DOMException("The operation was aborted.", "AbortError"));
+            }
           }
         }
       };
@@ -11470,7 +11692,7 @@ var require_fetch = __commonJS({
               } else {
                 const keys = Object.keys(rawHeaders);
                 for (let i = 0; i < keys.length; ++i) {
-                  headersList.append(keys[i], rawHeaders[keys[i]]);
+                  headersList.append(keys[i], rawHeaders[keys[i]], true);
                 }
                 const contentEncoding = rawHeaders["content-encoding"];
                 if (contentEncoding) {
@@ -11982,7 +12204,6 @@ var require_util3 = __commonJS({
 var require_connection = __commonJS({
   "lib/websocket/connection.js"(exports2, module2) {
     "use strict";
-    var diagnosticsChannel = require("diagnostics_channel");
     var { uid, states } = require_constants4();
     var {
       kReadyState,
@@ -11991,16 +12212,13 @@ var require_connection = __commonJS({
       kReceivedClose
     } = require_symbols3();
     var { fireEvent, failWebsocketConnection } = require_util3();
+    var { channels } = require_diagnostics();
     var { CloseEvent } = require_events();
     var { makeRequest } = require_request();
     var { fetching } = require_fetch();
     var { Headers } = require_headers();
     var { getGlobalDispatcher } = require_global2();
     var { kHeadersList } = require_symbols();
-    var channels = {};
-    channels.open = diagnosticsChannel.channel("undici:websocket:open");
-    channels.close = diagnosticsChannel.channel("undici:websocket:close");
-    channels.socketError = diagnosticsChannel.channel("undici:websocket:socket_error");
     var crypto;
     try {
       crypto = require("crypto");
@@ -12195,14 +12413,11 @@ var require_receiver = __commonJS({
   "lib/websocket/receiver.js"(exports2, module2) {
     "use strict";
     var { Writable } = require("stream");
-    var diagnosticsChannel = require("diagnostics_channel");
     var { parserStates, opcodes, states, emptyBuffer } = require_constants4();
     var { kReadyState, kSentClose, kResponse, kReceivedClose } = require_symbols3();
+    var { channels } = require_diagnostics();
     var { isValidStatusCode, failWebsocketConnection, websocketMessageReceived } = require_util3();
     var { WebsocketFrameSend } = require_frame();
-    var channels = {};
-    channels.ping = diagnosticsChannel.channel("undici:websocket:ping");
-    channels.pong = diagnosticsChannel.channel("undici:websocket:pong");
     var ByteParser = class extends Writable {
       static {
         __name(this, "ByteParser");
@@ -12824,7 +13039,7 @@ var require_websocket = __commonJS({
         if (isBlobLike(V)) {
           return webidl.converters.Blob(V, { strict: false });
         }
-        if (ArrayBuffer.isView(V) || types.isAnyArrayBuffer(V)) {
+        if (ArrayBuffer.isView(V) || types.isArrayBuffer(V)) {
           return webidl.converters.BufferSource(V);
         }
       }
@@ -12840,7 +13055,9 @@ var require_websocket = __commonJS({
 var fetchImpl = require_fetch().fetch;
 module.exports.fetch = /* @__PURE__ */ __name(function fetch(resource, init = void 0) {
   return fetchImpl(resource, init).catch((err) => {
-    Error.captureStackTrace(err, this);
+    if (typeof err === "object") {
+      Error.captureStackTrace(err, this);
+    }
     throw err;
   });
 }, "fetch");

@@ -106,7 +106,7 @@ If this flag is passed, the behavior can still be set to not abort through
 ### `--allow-addons`
 
 <!-- YAML
-added: REPLACEME
+added: v21.6.0
 -->
 
 > Stability: 1.1 - Active development
@@ -367,7 +367,7 @@ Currently the support for run-time snapshot is experimental in that:
 ### `--build-snapshot-config`
 
 <!-- YAML
-added: REPLACEME
+added: v21.6.0
 -->
 
 > Stability: 1 - Experimental
@@ -666,6 +666,10 @@ of `--enable-source-maps`.
 
 <!-- YAML
 added: v20.6.0
+changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/51289
+    description: Add support to multi-line values.
 -->
 
 Loads environment variables from a file relative to the current directory,
@@ -700,6 +704,20 @@ They are omitted from the values.
 
 ```text
 USERNAME="nodejs" # will result in `nodejs` as the value.
+```
+
+Multi-line values are supported:
+
+```text
+MULTI_LINE="THIS IS
+A MULTILINE"
+# will result in `THIS IS\nA MULTILINE` as the value.
+```
+
+Export keyword before a key is ignored:
+
+```text
+export USERNAME="nodejs" # will result in `nodejs` as the value.
 ```
 
 ### `-e`, `--eval "script"`
