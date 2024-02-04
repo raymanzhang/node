@@ -134,11 +134,6 @@
         # use ICU data file on z/OS
         'icu_use_data_file_flag%': 1
       }],
-      ['OS == "android"', {
-        # 'v8_ndk_lib_base': '<(android_ndk_path)/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android',
-        # #    'v8_ndk_lib_base': '<(v8_root_dir)/third_party/android_toolchain/ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android',
-        # 'v8_libs': '<(v8_ndk_lib_base)/libc++abi.a',
-      }]
     ],
   },
 
@@ -564,7 +559,6 @@
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
             'libraries': [ '-llog', '-lz' ],
-            # 'libraries': [ '-llog' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],
@@ -621,7 +615,7 @@
           ['clang==1', {
             'xcode_settings': {
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
-              'CLANG_CXX_LANGUAGE_STANDARD': 'c++17',  # -std=gnu++17
+              'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++17',  # -std=gnu++17
               'CLANG_CXX_LIBRARY': 'libc++',
             },
           }],

@@ -123,7 +123,6 @@
             '<(v8_root_dir)/third_party/icu/source/common',
             '<(v8_root_dir)/third_party/icu/source/i18n'
           ],
-          # 'libraries': [ '-licui18n', '-licuuc' ],
         }],
         [ 'icu_small=="true"', {
           'defines': [ 'NODE_HAVE_SMALL_ICU=1' ],
