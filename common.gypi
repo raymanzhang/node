@@ -564,7 +564,7 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'defines': [ '_GLIBCXX_USE_C99_MATH', 'ANDROID', '__ANDROID__'  ],
-            'libraries': [ '-llog', '-lz' ],
+            'libraries': [ '-llog' ],
           }],
           ['_toolset=="host"', {
             'cflags': [ '-pthread' ],
