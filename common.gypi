@@ -120,6 +120,10 @@
       ['OS in ("mac", "ios")', {
         'clang%': 1,
         'obj_dir%': '<(PRODUCT_DIR)/obj.target',
+        'use_system_zlib':1,
+      }],
+      ['OS == "android"', {
+        'use_system_zlib':1,
       }],
       # V8 pointer compression only supports 64bit architectures.
       ['target_arch in "arm ia32 mips mipsel ppc"', {
